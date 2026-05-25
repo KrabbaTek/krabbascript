@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <tokenizer/tokenizer.h>
-#include <toml/tomlc17.h>
 #include <unistd.h>
 
 int main(int argc, char* argv[]) {
@@ -38,9 +37,15 @@ int main(int argc, char* argv[]) {
 
             token_vector_t* tokens = tokenize(source, argv[2]);
             deTokenize(tokens);
-            astParseTokens(tokens, argv[2]);
+            
+            ast_parent_t* program = astParseTokens(tokens, argv[2]);
+            parserDumpNode(program, 0);
+            
+            freeNodeBlock(program);
+            freeNode(program);
 
             freeTokenVector(tokens);
+
             printErrorsGenerated();
         }
 

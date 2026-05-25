@@ -1,6 +1,6 @@
-from <std.krs> import *;
+from <stdlib.krs> import *;
 
-function main() -> i32 {
+func main() -> i32 {
     std.print("Hello, world!");
 
     return 0;

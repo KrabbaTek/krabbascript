@@ -3,56 +3,36 @@
 binding_power_t getBindingPower(token_type type) {
     switch (type) {
         case KSCRIPT_TOKEN_TYPE_SBRACKET_OPEN:
-            return (binding_power_t){1.0f, 1.1f};
-            break;
         case KSCRIPT_TOKEN_TYPE_SBRACKET_CLOSED:
-            return (binding_power_t){1.0f, 1.1f};
-            break;
         case KSCRIPT_TOKEN_TYPE_DOT:
-            return (binding_power_t){1.0f, 1.1f};
-            break;
         case KSCRIPT_TOKEN_TYPE_ARROW:
-            return (binding_power_t){1.0f, 1.1f};
-            break;
         case KSCRIPT_TOKEN_TYPE_PLUS_PLUS:
-            return (binding_power_t){1.0f, 1.1f};
-            break;
         case KSCRIPT_TOKEN_TYPE_MINUS_MINUS:
             return (binding_power_t){1.0f, 1.1f};
             break;
+
         case KSCRIPT_TOKEN_TYPE_MORE_THAN:
-            return (binding_power_t){10.0f, 10.1f};
-            break;
         case KSCRIPT_TOKEN_TYPE_LESS_THAN:
-            return (binding_power_t){10.0f, 10.1f};
-            break;
         case KSCRIPT_TOKEN_TYPE_LESS_EQU:
-            return (binding_power_t){10.0f, 10.1f};
-            break;
         case KSCRIPT_TOKEN_TYPE_GREATER_EQU:
             return (binding_power_t){10.0f, 10.1f};
             break;
+
         case KSCRIPT_TOKEN_TYPE_EQUALS_EQUALS:
-            return (binding_power_t){9.0f, 9.1f};
-            break;
         case KSCRIPT_TOKEN_TYPE_NOT_EQU:
             return (binding_power_t){9.0f, 9.1f};
             break;
+
         case KSCRIPT_TOKEN_TYPE_LOGICAL_AND:
-            return (binding_power_t){5.0f, 5.1f};
-            break;
         case KSCRIPT_TOKEN_TYPE_LOGICAL_OR:
             return (binding_power_t){5.0f, 5.1f};
             break;
+
         case KSCRIPT_TOKEN_TYPE_PLUS:
-            return (binding_power_t){20.0f, 20.1f};
-            break;
         case KSCRIPT_TOKEN_TYPE_MINUS:
             return (binding_power_t){20.0f, 20.1f};
             break;
         case KSCRIPT_TOKEN_TYPE_STAR:
-            return (binding_power_t){30.0f, 30.1f};
-            break;
         case KSCRIPT_TOKEN_TYPE_SLASH:
             return (binding_power_t){30.0f, 30.1f};
             break;
@@ -300,9 +280,9 @@ ast_node_t* tokenToNode(token_t token) {
             break;
 
         default:
-            errors_generated++;
-            printf("\033[1;31mERROR\033[0m: Unexpected token ");
+            err("Unknown token ");
             deTokenizeTokenKeyword(token);
+            printf("\n");
 
             node->type = KSCRIPT_AST_NODE_TYPE_NONE;
 
@@ -404,11 +384,20 @@ ast_parent_t* astParseTokens(token_vector_t* tokens, char* source_file) {
             nodeBlockPush(root, parent);
 
             index++;
+        } else if (!tokenVectorEof(tokens, index) &&
+                   tokenVectorPeek(tokens, index).type ==
+                           KSCRIPT_TOKEN_TYPE_FUNCTION) {
+            index++;
+            ast_parent_t* parent =
+                    parserHandleFunction(tokens, &index, source_file);
+            nodeBlockPush(root, parent);
+
+            index++;
         } else
             index++;
     }
 
-    parserDumpNode(root, 0);
+    // parserDumpNode(root, 0);
     return root;
 }
 
@@ -423,23 +412,14 @@ symbol_table_t* createSymbolTableFromTokens(token_vector_t* tokens) {
 ast_parent_t*
 parserHandleVal(token_vector_t* tokens, size_t* index, char* source_file) {
     if (tokenVectorEof(tokens, *index)) {
-        errors_generated++;
-        printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Incomplete val "
-               "statement. Expected a literal, got EOF\n",
-               source_file,
-               tokenVectorPeek(tokens, *index).line,
-               tokenVectorPeek(tokens, *index).col);
+        perr("Expected a literal, got <EOF>\n");
 
         return newNode();
     }
 
     if (tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_LITERAL) {
-        errors_generated++;
-        printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Expected a literal, "
-               "got ",
-               source_file,
-               tokenVectorPeek(tokens, *index).line,
-               tokenVectorPeek(tokens, *index).col);
+        perr("Expected a literal, got ");
+
         deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
         printf("\n");
 
@@ -450,12 +430,7 @@ parserHandleVal(token_vector_t* tokens, size_t* index, char* source_file) {
     (*index)++;
 
     if (tokenVectorEof(tokens, *index)) {
-        errors_generated++;
-        printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Incomplete val "
-               "statement. Expected = or :, got EOF\n",
-               source_file,
-               tokenVectorPeek(tokens, *index).line,
-               tokenVectorPeek(tokens, *index).col);
+        perr("Expected '=', ':', got <EOF>\n");
 
         return newNode();
     }
@@ -464,12 +439,7 @@ parserHandleVal(token_vector_t* tokens, size_t* index, char* source_file) {
         tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_EQUALS &&
         tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_COLON) {
 
-        errors_generated++;
-        printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Expected = or :, "
-               "got ",
-               source_file,
-               tokenVectorPeek(tokens, *index).line,
-               tokenVectorPeek(tokens, *index).col);
+        perr("Expected '=', ':', got ");
 
         deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
         printf("\n");
@@ -484,13 +454,7 @@ parserHandleVal(token_vector_t* tokens, size_t* index, char* source_file) {
         token_vector_t* buffer = newTokenVector();
 
         if (tokenVectorEof(tokens, *index)) {
-            errors_generated++;
-            printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Expected "
-                   "expression, "
-                   "got EOF\n",
-                   source_file,
-                   tokenVectorPeek(tokens, *index).line,
-                   tokenVectorPeek(tokens, *index).col);
+            perr("Expected expression, got <EOF>\n") freeTokenVector(buffer);
 
             return newNode();
         }
@@ -505,14 +469,14 @@ parserHandleVal(token_vector_t* tokens, size_t* index, char* source_file) {
 
         size_t        index_exp = 0;
         expression_t* exp       = astParseExpression(buffer, &index_exp, 0.0f);
+        freeTokenVector(buffer);
 
         ast_parent_t* node = newNode();
-        node->type         = KSCRIPT_AST_NODE_TYPE_VALUE_DEC;
+        node->type         = KSCRIPT_AST_NODE_TYPE_VALUE_DEF;
         node->lexeme       = strdup(ident.s);
         node->lexeme_owned = true;
 
         node->left = exp;
-
         return node;
     }
 
@@ -521,13 +485,7 @@ parserHandleVal(token_vector_t* tokens, size_t* index, char* source_file) {
         tokenVectorPeek(tokens, *index).type == KSCRIPT_TOKEN_TYPE_COLON) {
         (*index)++;
         if (tokenVectorEof(tokens, *index)) {
-            errors_generated++;
-            printf("%s:%d:%d: \033[1;31mERROR\033[0m: Incomplete val "
-                   "statement, expected "
-                   "a type, got EOF\n",
-                   source_file,
-                   tokenVectorPeek(tokens, *index).line,
-                   tokenVectorPeek(tokens, *index).col);
+            perr("Expected a type, got <EOF>\n");
 
             return newNode();
         }
@@ -536,21 +494,16 @@ parserHandleVal(token_vector_t* tokens, size_t* index, char* source_file) {
         (*index)++;
 
         if (tokenVectorEof(tokens, *index)) {
-            errors_generated++;
-            printf("%s:%d:%d: \033[1;31mERROR\033[0m: Expected =, got EOF\n",
-                   source_file,
-                   tokenVectorPeek(tokens, *index).line,
-                   tokenVectorPeek(tokens, *index).col);
+            perr("Expected '=' or ';', got <EOF>\n");
+
             return newNode();
         }
 
         if (!tokenVectorEof(tokens, *index) &&
-            tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_EQUALS) {
-            errors_generated++;
-            printf("%s:%d:%d: \033[1;31mERROR\033[0m: Expected =, got ",
-                   source_file,
-                   tokenVectorPeek(tokens, *index).line,
-                   tokenVectorPeek(tokens, *index).col);
+            tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_EQUALS &&
+            tokenVectorPeek(tokens, *index).type !=
+                    KSCRIPT_TOKEN_TYPE_SEMICOLON) {
+            perr("Expected '=' or ';', got ");
 
             deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
             printf("\n");
@@ -558,18 +511,31 @@ parserHandleVal(token_vector_t* tokens, size_t* index, char* source_file) {
             return newNode();
         }
 
+        // Handle the semicolon
+        if (tokenVectorPeek(tokens, *index).type ==
+            KSCRIPT_TOKEN_TYPE_SEMICOLON) {
+            ast_parent_t* node = newNode();
+            // Type
+            node->right = tokenToNode(type);
+
+            node->type         = KSCRIPT_AST_NODE_TYPE_VALUE_DEC;
+            node->lexeme       = strdup(ident.s);
+            node->lexeme_owned = true;
+
+            return node;
+        }
+
+        // Handle the equals sign
         (*index)++;
 
         token_vector_t* buffer = newTokenVector();
 
-        size_t offset = 0;
         while (tokenVectorPeek(tokens, *index).type !=
                        KSCRIPT_TOKEN_TYPE_SEMICOLON &&
                !tokenVectorEof(tokens, *index)) {
             tokenVectorPush(buffer, tokenVectorPeek(tokens, *index));
 
             (*index)++;
-            offset++;
         }
 
         size_t        index_exp = 0;
@@ -579,7 +545,7 @@ parserHandleVal(token_vector_t* tokens, size_t* index, char* source_file) {
         // Type
         node->right = tokenToNode(type);
 
-        node->type         = KSCRIPT_AST_NODE_TYPE_VALUE_DEC;
+        node->type         = KSCRIPT_AST_NODE_TYPE_VALUE_DEF;
         node->lexeme       = strdup(ident.s);
         node->lexeme_owned = true;
 
@@ -593,23 +559,14 @@ parserHandleVal(token_vector_t* tokens, size_t* index, char* source_file) {
 ast_parent_t*
 parserHandleVar(token_vector_t* tokens, size_t* index, char* source_file) {
     if (tokenVectorEof(tokens, *index)) {
-        errors_generated++;
-        printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Incomplete var "
-               "statement. Expected a literal, got EOF\n",
-               source_file,
-               tokenVectorPeek(tokens, *index).line,
-               tokenVectorPeek(tokens, *index).col);
+        perr("Expected a literal, got <EOF>\n");
 
         return newNode();
     }
 
     if (tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_LITERAL) {
-        errors_generated++;
-        printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Expected a literal, "
-               "got ",
-               source_file,
-               tokenVectorPeek(tokens, *index).line,
-               tokenVectorPeek(tokens, *index).col);
+        perr("Expected a literal, got ");
+
         deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
         printf("\n");
 
@@ -620,12 +577,7 @@ parserHandleVar(token_vector_t* tokens, size_t* index, char* source_file) {
     (*index)++;
 
     if (tokenVectorEof(tokens, *index)) {
-        errors_generated++;
-        printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Incomplete var "
-               "statement. Expected = or :, got EOF\n",
-               source_file,
-               tokenVectorPeek(tokens, *index).line,
-               tokenVectorPeek(tokens, *index).col);
+        perr("Expected '=', ':', got <EOF>\n");
 
         return newNode();
     }
@@ -634,12 +586,7 @@ parserHandleVar(token_vector_t* tokens, size_t* index, char* source_file) {
         tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_EQUALS &&
         tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_COLON) {
 
-        errors_generated++;
-        printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Expected = or :, "
-               "got ",
-               source_file,
-               tokenVectorPeek(tokens, *index).line,
-               tokenVectorPeek(tokens, *index).col);
+        perr("Expected '=', ':', got ");
 
         deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
         printf("\n");
@@ -654,13 +601,7 @@ parserHandleVar(token_vector_t* tokens, size_t* index, char* source_file) {
         token_vector_t* buffer = newTokenVector();
 
         if (tokenVectorEof(tokens, *index)) {
-            errors_generated++;
-            printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Expected "
-                   "expression, "
-                   "got EOF\n",
-                   source_file,
-                   tokenVectorPeek(tokens, *index).line,
-                   tokenVectorPeek(tokens, *index).col);
+            perr("Expected expression, got <EOF>\n") freeTokenVector(buffer);
 
             return newNode();
         }
@@ -675,9 +616,10 @@ parserHandleVar(token_vector_t* tokens, size_t* index, char* source_file) {
 
         size_t        index_exp = 0;
         expression_t* exp       = astParseExpression(buffer, &index_exp, 0.0f);
+        freeTokenVector(buffer);
 
         ast_parent_t* node = newNode();
-        node->type         = KSCRIPT_AST_NODE_TYPE_VARIABLE_DEC;
+        node->type         = KSCRIPT_AST_NODE_TYPE_VARIABLE_DEF;
         node->lexeme       = strdup(ident.s);
         node->lexeme_owned = true;
 
@@ -690,37 +632,25 @@ parserHandleVar(token_vector_t* tokens, size_t* index, char* source_file) {
         tokenVectorPeek(tokens, *index).type == KSCRIPT_TOKEN_TYPE_COLON) {
         (*index)++;
         if (tokenVectorEof(tokens, *index)) {
-            errors_generated++;
-            printf("%s:%d:%d: \033[1;31mERROR\033[0m: Incomplete var "
-                   "statement, expected "
-                   "a type, got EOF\n",
-                   source_file,
-                   tokenVectorPeek(tokens, *index).line,
-                   tokenVectorPeek(tokens, *index).col);
+            perr("Expected a type, got <EOF>\n");
 
             return newNode();
         }
-
         token_t type = tokenVectorPeek(tokens, *index);
 
         (*index)++;
 
         if (tokenVectorEof(tokens, *index)) {
-            errors_generated++;
-            printf("%s:%d:%d: \033[1;31mERROR\033[0m: Expected =, got EOF\n",
-                   source_file,
-                   tokenVectorPeek(tokens, *index).line,
-                   tokenVectorPeek(tokens, *index).col);
+            perr("Expected '=' or ';', got <EOF>\n");
+
             return newNode();
         }
 
         if (!tokenVectorEof(tokens, *index) &&
-            tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_EQUALS) {
-            errors_generated++;
-            printf("%s:%d:%d: \033[1;31mERROR\033[0m: Expected =, got ",
-                   source_file,
-                   tokenVectorPeek(tokens, *index).line,
-                   tokenVectorPeek(tokens, *index).col);
+            tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_EQUALS &&
+            tokenVectorPeek(tokens, *index).type !=
+                    KSCRIPT_TOKEN_TYPE_SEMICOLON) {
+            perr("Expected '=' or ';', got ");
 
             deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
             printf("\n");
@@ -728,18 +658,31 @@ parserHandleVar(token_vector_t* tokens, size_t* index, char* source_file) {
             return newNode();
         }
 
+        // Handle the semicolon
+        if (tokenVectorPeek(tokens, *index).type ==
+            KSCRIPT_TOKEN_TYPE_SEMICOLON) {
+            ast_parent_t* node = newNode();
+            // Type
+            node->right = tokenToNode(type);
+
+            node->type         = KSCRIPT_AST_NODE_TYPE_VARIABLE_DEC;
+            node->lexeme       = strdup(ident.s);
+            node->lexeme_owned = true;
+
+            return node;
+        }
+
+        // Handle the equals sign
         (*index)++;
 
         token_vector_t* buffer = newTokenVector();
 
-        size_t offset = 0;
         while (tokenVectorPeek(tokens, *index).type !=
                        KSCRIPT_TOKEN_TYPE_SEMICOLON &&
                !tokenVectorEof(tokens, *index)) {
             tokenVectorPush(buffer, tokenVectorPeek(tokens, *index));
 
             (*index)++;
-            offset++;
         }
 
         size_t        index_exp = 0;
@@ -749,7 +692,7 @@ parserHandleVar(token_vector_t* tokens, size_t* index, char* source_file) {
         // Type
         node->right = tokenToNode(type);
 
-        node->type         = KSCRIPT_AST_NODE_TYPE_VARIABLE_DEC;
+        node->type         = KSCRIPT_AST_NODE_TYPE_VARIABLE_DEF;
         node->lexeme       = strdup(ident.s);
         node->lexeme_owned = true;
 
@@ -763,26 +706,17 @@ parserHandleVar(token_vector_t* tokens, size_t* index, char* source_file) {
 ast_parent_t*
 parserHandleFrom(token_vector_t* tokens, size_t* index, char* source_file) {
     if (tokenVectorEof(tokens, *index)) {
-        errors_generated++;
-        printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Incomplete from "
-               "statement. Expected a file path, got EOF\n",
-               source_file,
-               tokenVectorPeek(tokens, *index).line,
-               tokenVectorPeek(tokens, *index).col);
+        perr("Expected a path, got <EOF>\n");
 
         return newNode();
     }
 
     if (tokenVectorPeek(tokens, *index).type !=
         KSCRIPT_TOKEN_TYPE_STR_LITERAL) {
-        errors_generated++;
-        printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Incomplete from "
-               "statement. Expected a file path, got ",
-               source_file,
-               tokenVectorPeek(tokens, *index).line,
-               tokenVectorPeek(tokens, *index).col);
+        perr("Expected a path, got ");
 
         deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
+        printf("\n");
 
         return newNode();
     }
@@ -790,30 +724,53 @@ parserHandleFrom(token_vector_t* tokens, size_t* index, char* source_file) {
     token_t file = tokenVectorPeek(tokens, *index);
     (*index)++;
 
+    if (tokenVectorEof(tokens, *index)) {
+        perr("Expected import, got <EOF>\n");
+
+        return newNode();
+    }
+
     if (tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_IMPORT) {
-        errors_generated++;
-        printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Incomplete from "
-               "statement. Expected import, got ",
-               source_file,
-               tokenVectorPeek(tokens, *index).line,
-               tokenVectorPeek(tokens, *index).col);
+        perr("Expected import, got ");
 
         deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
+        printf("\n");
 
         return newNode();
     }
 
     (*index)++;
 
+    if (tokenVectorEof(tokens, *index)) {
+        perr("Expected a literal, got <EOF>\n");
+
+        return newNode();
+    }
+
     if (tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_LITERAL) {
-        errors_generated++;
-        printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Incomplete from "
-               "statement. Expected a literal, got ",
-               source_file,
-               tokenVectorPeek(tokens, *index).line,
-               tokenVectorPeek(tokens, *index).col);
+        perr("Expected a literal, got ");
 
         deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
+        printf("\n");
+
+        return newNode();
+    }
+
+    ast_node_t* right = tokenToNode(tokenVectorPeek(tokens, *index));
+
+    (*index)++;
+
+    if (tokenVectorEof(tokens, *index)) {
+        perr("Expecte a ';', got <EOF>\n");
+
+        return newNode();
+    }
+
+    if (tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_SEMICOLON) {
+        perr("Expected a ';', got ");
+
+        deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
+        printf("\n");
 
         return newNode();
     }
@@ -823,9 +780,191 @@ parserHandleFrom(token_vector_t* tokens, size_t* index, char* source_file) {
     parent->type = KSCRIPT_AST_NODE_TYPE_IMPORT;
 
     parent->left  = tokenToNode(file);
-    parent->right = tokenToNode(tokenVectorPeek(tokens, *index));
+    parent->right = right;
 
+    (*index)++;
     return parent;
+}
+
+ast_parent_t*
+parserHandleFunction(token_vector_t* tokens, size_t* index, char* source_file) {
+    /* if (tokenVectorEof(tokens, *index)) {
+        perr("Expected a literal, got <EOF>\n");
+
+        return newNode();
+    }
+
+    if (tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_LITERAL) {
+        perr("Expected a literal, got ");
+
+        deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
+
+        return newNode();
+    }
+
+    token_t literal = tokenVectorPeek(tokens, *index);
+    (*index)++;
+
+    if (tokenVectorEof(tokens, *index)) {
+        perr("Expected '(', got <EOF>\n");
+
+        return newNode();
+    }
+
+    if (tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_OPEN_PAREN) {
+        perr("Expected '(', got <EOF>");
+
+        deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
+        printf("\n");
+
+        return newNode();
+    }
+
+    (*index)++;
+    token_t current = tokenVectorPeek(tokens, *index);
+
+    token_vector_t* buffer = newTokenVector();
+    ast_parent_t*   node   = newNode();
+
+    ast_node_t* arg = newNode();
+
+    newFuncArgs(node);
+
+    // Parse the functions arguments
+    while (current.type != KSCRIPT_TOKEN_TYPE_CLOSED_PAREN &&
+           !tokenVectorEof(tokens, *index)) {
+        // Consume every token before a comma and then pass them to
+        // parserParseFunctionParam
+        while (current.type != KSCRIPT_TOKEN_TYPE_COMMA &&
+               !tokenVectorEof(tokens, *index) &&
+               current.type != KSCRIPT_TOKEN_TYPE_CLOSED_PAREN) {
+            tokenVectorPush(buffer, current);
+            (*index)++;
+
+            current = tokenVectorPeek(tokens, *index);
+        }
+
+        arg = parserParseFunctionParam(buffer, index, source_file);
+        funcArgsPush(node, arg);
+
+        current = tokenVectorPeek(tokens, *index);
+
+        if (current.type == KSCRIPT_TOKEN_TYPE_COMMA) {
+            // Skip the comma
+            (*index)++;
+            current = tokenVectorPeek(tokens, *index);
+        }
+        resetTokenVector(buffer);
+    }
+    if (tokenVectorEof(tokens, *index)) {
+        perr("Expected ')' or function arguments, got <EOF>\n");
+
+        freeTokenVector(buffer);
+
+        freeFuncArgs(arg);
+        freeNode(arg);
+        return newNode();
+    }
+    resetTokenVector(buffer);
+    freeFuncArgs(arg);
+    freeNode(arg);
+
+    (*index)++;
+
+    if (tokenVectorEof(tokens, *index)) {
+        perr("Expected '->', ';' or '{', got <EOF>\n");
+
+        return newNode();
+    }
+
+    if (tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_ARROW &&
+        tokenVectorPeek(tokens, *index).type !=
+                KSCRIPT_TOKEN_TYPE_CBRACKET_OPEN &&
+        tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_SEMICOLON) {
+        perr("Expected '->', ';' or '{', got ");
+
+        deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
+        printf("\n");
+
+        return newNode();
+    }
+
+    // Handle the semicolon
+    if (tokenVectorPeek(tokens, *index).type == KSCRIPT_TOKEN_TYPE_SEMICOLON) {
+        node->type         = KSCRIPT_AST_NODE_TYPE_FUNCTION_DEC;
+        node->lexeme       = strdup(literal.s);
+        node->lexeme_owned = true;
+
+        return node;
+    }
+
+    (*index)++;
+
+    if (tokenVectorEof(tokens, *index)) {
+        perr("Expected a type, got <EOF>\n");
+
+        return newNode();
+    }
+
+    // Store the return type in a node
+    ast_node_t* return_type_n = tokenToNode(tokenVectorPeek(tokens, *index));
+    (*index)++;
+
+    if (tokenVectorEof(tokens, *index)) {
+        perr("Expected '{' or ';', got <EOF>\n");
+
+        return newNode();
+    }
+
+    if (tokenVectorPeek(tokens, *index).type == KSCRIPT_TOKEN_TYPE_SEMICOLON) {
+        node->type                  = KSCRIPT_AST_NODE_TYPE_FUNCTION_DEC;
+        node->function_dec.ret_type = return_type_n;
+
+        node->lexeme       = strdup(literal.s);
+        node->lexeme_owned = true;
+
+        return node;
+    }
+
+    if (tokenVectorPeek(tokens, *index).type !=
+        KSCRIPT_TOKEN_TYPE_CBRACKET_OPEN) {
+        perr("Expected '{', got ")
+
+        deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
+        printf("\n");
+
+        return newNode();
+    }
+
+    (*index)++;
+
+    // Collect all token until we hit a '}'. Then pass it back to astParseTokens
+    current = tokenVectorPeek(tokens, *index);
+    while (current.type != KSCRIPT_TOKEN_TYPE_CBRACKET_CLOSED &&
+           !tokenVectorEof(tokens, *index)) {
+        tokenVectorPush(buffer, current);
+        current = tokenVectorPeek(tokens, *index);
+        (*index)++;
+    }
+
+    if (tokenVectorEof(tokens, *index)) {
+        perr("Expected '}', got <EOF>\n");
+
+        freeTokenVector(buffer);
+        return newNode();
+    }
+
+    ast_parent_t* code = astParseTokens(buffer, source_file);
+    code->type         = KSCRIPT_AST_NODE_TYPE_ROOT;
+
+    node->function_dec.body     = code;
+    node->function_dec.ret_type = return_type_n;
+
+    node->type         = KSCRIPT_AST_NODE_TYPE_FUNCTION_DEF;
+    node->lexeme       = strdup(literal.s);
+    node->lexeme_owned = true;
+
+    return node; */
 }
 
 void parserPrintNodeType(ast_node_t* node) {
@@ -871,6 +1010,12 @@ void parserPrintNodeType(ast_node_t* node) {
             break;
         case KSCRIPT_AST_NODE_TYPE_VALUE_DEC:
             printf("ValueDec");
+            break;
+        case KSCRIPT_AST_NODE_TYPE_VARIABLE_DEF:
+            printf("VariableDef");
+            break;
+        case KSCRIPT_AST_NODE_TYPE_VALUE_DEF:
+            printf("ValueDef");
             break;
         case KSCRIPT_AST_NODE_TYPE_FUNCTION_DEC:
             printf("FunctionDec");
@@ -958,6 +1103,10 @@ void parserPrintNodeType(ast_node_t* node) {
             printf("FloatLiteral");
             break;
 
+        case KSCRIPT_AST_NODE_TYPE_ROOT:
+            printf("Root");
+            break;
+
         default:
             printf("???");
             break;
@@ -1004,4 +1153,86 @@ void parserDumpNode(ast_parent_t* parent, size_t depth) {
     for (size_t i = 0; i < parent->block.size; i++) {
         parserDumpNode(parent->block.body[i], depth + 2);
     }
+
+    if (!parent->function_dec.args) return;
+
+    for (size_t i = 0; i < depth; i++)
+        printf("    ");
+    printf("    - Args:\n");
+
+    for (size_t i = 0; i < parent->function_dec.args_size; i++) {
+        parserDumpNode(parent->function_dec.args[i], depth + 2);
+    }
+}
+
+ast_parent_t* parserParseFunctionParam(token_vector_t* tokens,
+                                       size_t*         index,
+                                       char*           source_file) {
+    if (tokenVectorEof(tokens, *index)) {
+        return newNode();
+    }
+
+    if (tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_LITERAL) {
+        errors_generated++;
+        printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Incomplete function "
+               "declaration. Expected a literal, got ",
+               source_file,
+               tokenVectorPeek(tokens, *index).line,
+               tokenVectorPeek(tokens, *index).col);
+
+        deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
+
+        return newNode();
+    }
+
+    token_t literal = tokenVectorPeek(tokens, *index);
+
+    (*index)++;
+
+    if (tokenVectorEof(tokens, *index)) {
+        errors_generated++;
+        printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Incomplete function "
+               "declaration. Expected ':', got EOF\n",
+               source_file,
+               tokenVectorPeek(tokens, *index).line,
+               tokenVectorPeek(tokens, *index).col);
+
+        return newNode();
+    }
+
+    if (tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_COLON) {
+        errors_generated++;
+        printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Incomplete function "
+               "declaration. Expected ':', got ",
+               source_file,
+               tokenVectorPeek(tokens, *index).line,
+               tokenVectorPeek(tokens, *index).col);
+
+        deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
+
+        return newNode();
+    }
+
+    (*index)++;
+
+    if (tokenVectorEof(tokens, *index)) {
+        errors_generated++;
+        printf("%s:%d:%d: \033[1;31mSYNTAX ERROR\033[0m: Incomplete function "
+               "declaration. Expected a type, got EOF\n",
+               source_file,
+               tokenVectorPeek(tokens, *index).line,
+               tokenVectorPeek(tokens, *index).col);
+
+        return newNode();
+    }
+
+    ast_node_t*   type = tokenToNode(tokenVectorPeek(tokens, *index));
+    ast_parent_t* node = newNode();
+
+    node->lexeme       = strdup(literal.s);
+    node->lexeme_owned = true;
+
+    node->right = type;
+
+    return node;
 }

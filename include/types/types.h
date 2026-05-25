@@ -122,6 +122,8 @@ typedef struct {
         bool  b;
     };
 
+    bool s_owned;
+
     int line;
     int col;
 
@@ -143,8 +145,6 @@ typedef struct {
 
 } token_vector_t;
 
-// TODO: Add PTR and BOOL types
-
 typedef enum {
     // Arithmetic operators
     KSCRIPT_AST_NODE_TYPE_DIV,
@@ -164,6 +164,9 @@ typedef enum {
 
     KSCRIPT_AST_NODE_TYPE_VARIABLE_DEC,
     KSCRIPT_AST_NODE_TYPE_VALUE_DEC,
+
+    KSCRIPT_AST_NODE_TYPE_VARIABLE_DEF,
+    KSCRIPT_AST_NODE_TYPE_VALUE_DEF,
 
     KSCRIPT_AST_NODE_TYPE_FUNCTION_DEC,
     KSCRIPT_AST_NODE_TYPE_FUNCTION_DEF,
@@ -199,6 +202,7 @@ typedef enum {
 
     KSCRIPT_AST_NODE_TYPE_NONE,
     KSCRIPT_AST_NODE_TYPE_PROGRAM,
+    KSCRIPT_AST_NODE_TYPE_ROOT,
     KSCRIPT_AST_NODE_TYPE_EOF
 } ast_node_type;
 
@@ -214,14 +218,22 @@ typedef struct ast_node_t {
     int line;
     int col;
 
-    union {
-        struct {
-            struct ast_node_t** body;
+    struct {
+        struct ast_node_t** body;
 
-            size_t size;
-            size_t capacity;
-        } block;
-    };
+        size_t size;
+        size_t capacity;
+    } block;
+
+    struct {
+        struct ast_node_t** args;
+
+        size_t args_size;
+        size_t args_capacity;
+
+        struct ast_node_t* ret_type;
+        struct ast_node_t* body;
+    } function_dec;
 
 } ast_node_t;
 

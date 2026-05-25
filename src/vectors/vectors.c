@@ -79,6 +79,10 @@ char charVectorPeek(char_vector_t* vector, size_t index) {
 
 token_vector_t* newTokenVector() {
     token_vector_t* vec = (token_vector_t*)malloc(sizeof(token_vector_t));
+    if (!vec) {
+        err("Failed to allocate a token vector");
+        exit(1);
+    }
 
     vec->data = NULL;
 
@@ -89,7 +93,7 @@ token_vector_t* newTokenVector() {
 }
 
 void tokenVectorPush(token_vector_t* vector, token_t val) {
-    if (vector->data == NULL) {
+    if (!vector->data) {
         vector->data = (token_t*)malloc(sizeof(token_t));
 
         vector->capacity = 1;
@@ -128,9 +132,23 @@ void freeTokenVector(token_vector_t* vector) {
     if (!vector->data) {
         free(vector);
         return;
-    } else {
-        free(vector->data);
-        free(vector);
+    }
+    // Free every token
+    size_t i = 0;
+    while (!tokenVectorEof(vector, i)) {
+        freeToken(&vector->data[i]);
+        i++;
+    }
+
+    free(vector->data);
+    free(vector);
+}
+
+void freeToken(token_t* token) {
+    if (token && token->s_owned) {
+        free(token->s);
+        token->s       = NULL;
+        token->s_owned = false;
     }
 }
 
@@ -143,10 +161,7 @@ bool tokenVectorEof(token_vector_t* vector, size_t index) {
 }
 
 ast_node_t* newNode() {
-    ast_node_t* node = (ast_node_t*)malloc(sizeof(ast_node_t));
-
-    node->left  = NULL;
-    node->right = NULL;
+    ast_node_t* node = (ast_node_t*)calloc(1, sizeof(ast_node_t));
 
     return node;
 }
@@ -261,6 +276,59 @@ ast_node_t* nodeBlockPop(ast_node_t* node) {
     if (node->block.size > 0) {
         ast_node_t* child = node->block.body[node->block.size - 1];
         node->block.size--;
+        return child;
+    }
+
+    return NULL;
+}
+
+void resetTokenVector(token_vector_t* vector) {
+    vector->size = 0;
+}
+
+void newFuncArgs(ast_node_t* node) {
+    node->function_dec.args = NULL;
+
+    node->function_dec.args_size     = 0;
+    node->function_dec.args_capacity = 0;
+}
+
+void freeFuncArgs(ast_node_t* node) {
+    if (!node->function_dec.args) return;
+
+    for (size_t i = 0; i < node->function_dec.args_size; i++) {
+        freeNode(node->function_dec.args[i]);
+    }
+
+    free(node->function_dec.args);
+
+    node->function_dec.args          = NULL;
+    node->function_dec.args_size     = 0;
+    node->function_dec.args_capacity = 0;
+}
+
+void funcArgsPush(ast_node_t* node, ast_node_t* child) {
+    if (node->function_dec.args == NULL) {
+        node->function_dec.args = (ast_node_t**)malloc(sizeof(ast_node_t*));
+        node->function_dec.args_capacity = 1;
+    } else if (node->function_dec.args_size >=
+               node->function_dec.args_capacity) {
+        node->function_dec.args_capacity *= 2;
+        node->function_dec.args =
+                (ast_node_t**)realloc(node->function_dec.args,
+                                      sizeof(ast_node_t*) *
+                                              node->function_dec.args_capacity);
+    }
+
+    node->function_dec.args[node->function_dec.args_size] = child;
+    node->function_dec.args_size++;
+}
+
+ast_node_t* funcArgskPop(ast_node_t* node) {
+    if (node->function_dec.args_size > 0) {
+        ast_node_t* child =
+                node->function_dec.args[node->function_dec.args_size - 1];
+        node->function_dec.args_size--;
         return child;
     }
 

@@ -1,6 +1,1 @@
 val epicValue = "Krabba!"; # The compiler will not let you change a val's value unless its a var
-var daysWithoutSegFault = 0;
-
-# Both are in celsius
-var temperatureOutside = 25.7;
-var temperatureInside = 22.1;

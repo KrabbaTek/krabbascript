@@ -1,13 +1,13 @@
 from <stdlib.krs> import std;
 
 # Prints usage
-function printUsage(array<str>: args) {
+func printUsage(args: array<str>) {
     std.print("Usage: {args[0]} [options]");
     std.print("version          Display app's version");
     std.print("krabba           Print a nieche krabba");
 }
 
-function main(array<str>: args) -> i32 {
+func main(args: array<str>) -> i32 {
     if (args.size < 2) {
         printUsage();
     }

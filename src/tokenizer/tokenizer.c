@@ -325,7 +325,7 @@ void deTokenizeTokenKeyword(token_t token) {
             break;
 
         case KSCRIPT_TOKEN_TYPE_FUNCTION:
-            printf("function");
+            printf("func");
             break;
         case KSCRIPT_TOKEN_TYPE_VAR:
             printf("var");
@@ -524,7 +524,7 @@ token_vector_t* tokenize(char_vector_t* vector, const char* debug_path) {
 
                     i++;
                     col++;
-                    current = vector->data[i];
+                    current = (i < vector->size) ? vector->data[i] : '\0';
                 }
 
                 charVectorPush(buffer, '\0');
@@ -554,8 +554,8 @@ token_vector_t* tokenize(char_vector_t* vector, const char* debug_path) {
                 charVectorPush(buffer, '\0');
                 i--;
 
-                errno      = 0;
-                long v     = strtol(buffer->data, NULL, 10);
+                errno  = 0;
+                long v = strtol(buffer->data, NULL, 10);
                 if (errno == ERANGE || v > INT_MAX || v < INT_MIN) {
                     errors_generated++;
                     printf("%s:%d:%d: \033[1;31mOVERFLOW ERROR\033[0m: Integer "
@@ -678,9 +678,10 @@ token_vector_t* tokenize(char_vector_t* vector, const char* debug_path) {
 
                 tokenVectorPush(tokens,
                                 (token_t){.type = KSCRIPT_TOKEN_TYPE_STR_LITERAL,
-                                          .s    = strdup(buffer->data),
-                                          .line = line,
-                                          .col  = col});
+                                          .s       = strdup(buffer->data),
+                                          .line    = line,
+                                          .col     = col,
+                                          .s_owned = true});
                 resetCharVector(buffer);
             } else {
                 tokenVectorPush(tokens,
@@ -735,10 +736,11 @@ token_vector_t* tokenize(char_vector_t* vector, const char* debug_path) {
 
             charVectorPush(buffer, '\0');
             tokenVectorPush(tokens,
-                            (token_t){.type = KSCRIPT_TOKEN_TYPE_STR_LITERAL,
-                                      .s    = strdup(buffer->data),
-                                      .line = line,
-                                      .col  = col});
+                            (token_t){.type    = KSCRIPT_TOKEN_TYPE_STR_LITERAL,
+                                      .s       = strdup(buffer->data),
+                                      .line    = line,
+                                      .col     = col,
+                                      .s_owned = true});
 
             resetCharVector(buffer);
         } else if (current == '*') {
@@ -881,9 +883,8 @@ token_vector_t* tokenize(char_vector_t* vector, const char* debug_path) {
             while (i < vector->size && current != '\n') {
                 i++;
                 col++;
-                ;
 
-                current = vector->data[i];
+                current = (i < vector->size) ? vector->data[i] : '\0';
             }
 
             if (i < vector->size && vector->data[i] == '\n') {
@@ -902,7 +903,7 @@ token_vector_t* tokenize(char_vector_t* vector, const char* debug_path) {
                 col += 2;
             }
             // Handle ++
-            if (i + 1 < vector->size && vector->data[i + 1] == '+') {
+            else if (i + 1 < vector->size && vector->data[i + 1] == '+') {
                 tokenVectorPush(tokens,
                                 (token_t){.type = KSCRIPT_TOKEN_TYPE_PLUS_PLUS,
                                           .line = line,
@@ -918,17 +919,17 @@ token_vector_t* tokenize(char_vector_t* vector, const char* debug_path) {
                 col++;
             }
         } else if (isalnum(current) || current == '_') {
-            while ((i < vector->size && isalnum(current)) || current == '_') {
+            while (i < vector->size && (isalnum(current) || current == '_')) {
                 charVectorPush(buffer, current);
 
                 i++;
                 col++;
-                current = vector->data[i];
+                current = (i < vector->size) ? vector->data[i] : '\0';
             }
             charVectorPush(buffer, '\0');
             i--;
 
-            if (strcmp(buffer->data, "function") == 0) {
+            if (strcmp(buffer->data, "func") == 0) {
                 resetCharVector(buffer);
                 tokenVectorPush(tokens,
                                 (token_t){.type = KSCRIPT_TOKEN_TYPE_FUNCTION,
@@ -1108,10 +1109,11 @@ token_vector_t* tokenize(char_vector_t* vector, const char* debug_path) {
                                           .col  = col});
             } else {
                 tokenVectorPush(tokens,
-                                (token_t){.type = KSCRIPT_TOKEN_TYPE_LITERAL,
-                                          .s    = strdup(buffer->data),
-                                          .line = line,
-                                          .col  = col});
+                                (token_t){.type    = KSCRIPT_TOKEN_TYPE_LITERAL,
+                                          .s       = strdup(buffer->data),
+                                          .line    = line,
+                                          .col     = col,
+                                          .s_owned = true});
                 resetCharVector(buffer);
             }
         } else if (isspace(current)) {

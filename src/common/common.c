@@ -67,3 +67,13 @@ void printErrorsGenerated() {
         exit(1);
     }
 }
+
+void sourceError(int line, int col, char* source, char* msg) {
+    errors_generated++;
+    printf("%s:%d:%d: \033[1;31mERROR\033[0m: %s", source, line, col, msg);
+}
+
+void kscriptError(char* msg) {
+    errors_generated++;
+    printf("\033[1;31mERROR\033[0m: %s", msg);
+}

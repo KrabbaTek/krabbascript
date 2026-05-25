@@ -1,5 +1,6 @@
 CC      := gcc
-CFLAGS  := -Wall -Wextra -g -O2 -I include -DKSCRIPT_VENDOR=\"KrabbaTek\" -MMD -MP
+CFLAGS  := -Wall -Wextra -fsanitize=address -fno-omit-frame-pointer -static-libasan -g -O2 -I include -DKSCRIPT_VENDOR=\"KrabbaTek\" -MMD -MP -std=c11
+LDFLAGS := -fsanitize=address -fno-omit-frame-pointer
 
 SRC_DIR := src
 OBJ_DIR := obj
@@ -14,7 +15,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJS)
 	@echo "     LD $@"
-	@$(CC) $(OBJS) -o $@
+	@$(CC) $(OBJS) -o $@ $(LDFLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
@@ -33,6 +34,10 @@ format:
 	@echo "Formatting code..."
 	@clang-format -i $(SRCS) $(INC)
 
-.PHONY: all clean install format
+tidy:
+	@echo "Running clang-tidy..."
+	@clang-tidy $(SRCS) -- $(CFLAGS)
+
+.PHONY: all clean install format tidy
 
 -include $(DEPS)

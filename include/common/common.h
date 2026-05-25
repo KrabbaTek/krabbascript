@@ -10,7 +10,7 @@
 #define KSCRIPT_FILE 1
 
 #define KSCRIPT_VERSION_MAJOR 2
-#define KSCRIPT_VERSION_MINOR 5
+#define KSCRIPT_VERSION_MINOR 6
 #define KSCRIPT_VERSION_PATCH 5
 
 #define KSCRIPT_VERSION_IDENT "pre-alpha"
@@ -32,3 +32,6 @@ int isFile(const char* name);
 extern int errors_generated;
 
 void printErrorsGenerated();
+
+void sourceError(int line, int col, char* source, char* msg);
+void kscriptError(char* msg);
