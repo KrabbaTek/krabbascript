@@ -1,5 +1,6 @@
 #pragma once
 
+#define _GNU_SOURCE
 #include <common/common.h>
 #include <ctype.h>
 #include <limits.h>

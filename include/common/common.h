@@ -11,7 +11,7 @@
 
 #define KSCRIPT_VERSION_MAJOR 2
 #define KSCRIPT_VERSION_MINOR 6
-#define KSCRIPT_VERSION_PATCH 5
+#define KSCRIPT_VERSION_PATCH 6
 
 #define KSCRIPT_VERSION_IDENT "pre-alpha"
 
@@ -35,3 +35,5 @@ void printErrorsGenerated();
 
 void sourceError(int line, int col, char* source, char* msg);
 void kscriptError(char* msg);
+
+#define err(msg) kscriptError(msg);

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.6.6-pre-alpha
+- Added 01-Introduction, 02-Getting started and 03-Variables into DOCUMENTATION
+- Added table of contents in ``DOCUMENTATION/README.md``
+- Added support for including everything in the from statement with *
+- ``main()`` now uses ``err()`` for error reporting
+
 ## 2.6.5-pre-alpha
 - Centered the logo in README.md
 - Fixed the syntax inside ``examples/hello_world/src/main.krs`` and ``tests/arg_parser`` from ``function`` to ``func``
@@ -12,6 +18,7 @@
 - Embeded AddressSanitizer into the compiler, so I wouldn't suffer finding where the segfault happene and so I can check if theres any memory leaks without invoking valgrind
 - Added ``LD_FLAGS`` inside Makefile, so AddressSanitizer would also get linked
 - Changed KrabbaScript's syntax from ``function`` to ``func``
+- Changed the error reporting from ``line:col:file SYNTAX ERROR: bla bla bla`` to ``line:col:file ERROR: xyz``
 
 ## 2.5.5-pre-alpha
 - Removed CMakeLists.txt
@@ -33,4 +40,3 @@
 
 - Added a new error message: ```SYNTAX ERROR: Expected expression, got EOF```
     - Fires when a variable is declared like ```var krabba =```
-

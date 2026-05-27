@@ -5,6 +5,9 @@
 #include <tokenizer/tokenizer.h>
 #include <unistd.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         printUsage();
@@ -25,7 +28,7 @@ int main(int argc, char* argv[]) {
         return 0;
     } else if (strcmp(argv[1], "build") == 0) {
         if (argc < 3) {
-            printf("\033[1;31mERROR\033[0m: No input file|directory\n");
+            err("No input file|directory\n");
             usageBuild();
 
             return 1;
@@ -37,33 +40,42 @@ int main(int argc, char* argv[]) {
 
             token_vector_t* tokens = tokenize(source, argv[2]);
             deTokenize(tokens);
-            
-            ast_parent_t* program = astParseTokens(tokens, argv[2]);
-            parserDumpNode(program, 0);
-            
-            freeNodeBlock(program);
-            freeNode(program);
 
+            ast_parent_t* program = astParseTokens(tokens, argv[2]);
             freeTokenVector(tokens);
 
-            printErrorsGenerated();
+            parserDumpNode(program, 0);
+
+            freeNodeBlock(program);
+            freeNode(program);
         }
 
         else if (result == KSCRIPT_DIRECTORY) {
-            errors_generated++;
-            printf("\033[1;31mNOT IMPLEMENTED ERROR\033[0m: Building a "
-                   "directory is not implemented yet\n");
-
-            printErrorsGenerated();
+            err("Building directories is not implemented\n");
+            return 1;
         } else {
-            errors_generated++;
-            printf("\033[1;31mOPENING ERROR\033[0m: No such file or directory "
-                   "\"%s\"\n",
-                   argv[2]);
-            printErrorsGenerated();
+            err("No such file or directory \"");
+            printf("%s\"\n", argv[2]);
+            
+            return 1;
         }
 
         return 0;
+    } else if (strcmp(argv[1], "init") == 0) {
+        if (argc < 3) {
+            err("No directory name\n");
+            usageBuild();
+
+            return 1;
+        }
+
+        struct stat st = {0};
+
+        if (stat(argv[2], &st)) {
+            
+        }
+
+
     } else if (strcmp(argv[1], "krabba") == 0) {
         printKrabba();
         printf("Krabba!\n");
@@ -73,7 +85,9 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    printf("\033[1;31mERROR\033[0m: Unknown command \"%s\"\n", argv[1]);
+    err("Unknown command \"");
+    printf("%s\"\n", argv[1]);
+
     printUsage();
 
     return 1;

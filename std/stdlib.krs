@@ -1,0 +1,15 @@
+module std {
+    class Path {
+
+    }; # Path
+
+    template class<T> Vec {
+        T*  data;
+        i32 size;
+        i32 cap;
+
+        Vec()
+    }; # Vec
+
+    
+}; # std

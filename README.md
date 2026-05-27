@@ -1,4 +1,4 @@
-# Krabbascript 2.5.5-prototype
+# Krabbascript
 ![GitHub License](https://img.shields.io/github/license/khytryy/krabbascript)
 ![GitHub top language](https://img.shields.io/github/languages/top/khytryy/krabbascript?logo=c&label=)
 
@@ -6,12 +6,12 @@
     <img src=".github/logo/kscript_logo.png" width="45%">
 </div>
 
-Krabbascript is a statically typed, AOT compiled, high level programming language designed to be easy to write and read.
+KrabbaScript is a statically typed, AOT compiled, high level programming language designed to be easy to write and read.
 
 > [!CAUTION]
 > This project is still in its early stages, so expect a lot of unfinished stuff. Check-out our [Discord](https://discord.gg/MQT4YgEYvn) for news and progress on Krabbascript!
 
-Krabbascript mixes C, Lua, and Python together to form simple, and easy to learn syntax.
+Krabbascript mixes C and Python together to form simple, and easy to learn syntax.
 
 ## Getting started
 
@@ -47,8 +47,4 @@ make && sudo make install
 ```
 
 This creates the final binary in the project's directory and copies the compiler to `/usr/local/bin/kscript`.
-
-### Libraries used
-
-- [tomlc17](https://github.com/cktan/tomlc17), MIT License
 

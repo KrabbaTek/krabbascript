@@ -1,1 +1,1 @@
-from <stdlib.krs> import std;
+from <stdlib.krs> import *;

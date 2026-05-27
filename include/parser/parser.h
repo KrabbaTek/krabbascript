@@ -12,7 +12,6 @@
                 tokenVectorPeek(tokens, *index).col,                           \
                 source_file,                                                   \
                 msg);
-#define err(msg) kscriptError(msg);
 
 binding_power_t getBindingPower(token_type type);
 ast_node_type   tokenToExpression(token_t token);

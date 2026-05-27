@@ -215,7 +215,7 @@ void deTokenizeToken(token_t token) {
             break;
 
         case KSCRIPT_TOKEN_TYPE_EOF:
-            printf("EOF ");
+            printf("<EOF> ");
             break;
 
         case KSCRIPT_TOKEN_TYPE_LOGICAL_AND:

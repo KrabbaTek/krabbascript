@@ -7,3 +7,4 @@
 ## Feature todo list
 
 [ ] Replace a binding power struct with an enum one
+[ ] Make the compiler compiler ``std/stdlib.krs`` without any errors

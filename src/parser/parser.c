@@ -742,13 +742,14 @@ parserHandleFrom(token_vector_t* tokens, size_t* index, char* source_file) {
     (*index)++;
 
     if (tokenVectorEof(tokens, *index)) {
-        perr("Expected a literal, got <EOF>\n");
+        perr("Expected a literal or '*', got <EOF>\n");
 
         return newNode();
     }
 
-    if (tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_LITERAL) {
-        perr("Expected a literal, got ");
+    if (tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_LITERAL &&
+        tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_STAR) {
+        perr("Expected a literal or '*', got ");
 
         deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
         printf("\n");
@@ -761,7 +762,7 @@ parserHandleFrom(token_vector_t* tokens, size_t* index, char* source_file) {
     (*index)++;
 
     if (tokenVectorEof(tokens, *index)) {
-        perr("Expecte a ';', got <EOF>\n");
+        perr("Expected a ';', got <EOF>\n");
 
         return newNode();
     }
@@ -788,183 +789,9 @@ parserHandleFrom(token_vector_t* tokens, size_t* index, char* source_file) {
 
 ast_parent_t*
 parserHandleFunction(token_vector_t* tokens, size_t* index, char* source_file) {
-    /* if (tokenVectorEof(tokens, *index)) {
-        perr("Expected a literal, got <EOF>\n");
+    // TODO
 
-        return newNode();
-    }
-
-    if (tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_LITERAL) {
-        perr("Expected a literal, got ");
-
-        deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
-
-        return newNode();
-    }
-
-    token_t literal = tokenVectorPeek(tokens, *index);
-    (*index)++;
-
-    if (tokenVectorEof(tokens, *index)) {
-        perr("Expected '(', got <EOF>\n");
-
-        return newNode();
-    }
-
-    if (tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_OPEN_PAREN) {
-        perr("Expected '(', got <EOF>");
-
-        deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
-        printf("\n");
-
-        return newNode();
-    }
-
-    (*index)++;
-    token_t current = tokenVectorPeek(tokens, *index);
-
-    token_vector_t* buffer = newTokenVector();
-    ast_parent_t*   node   = newNode();
-
-    ast_node_t* arg = newNode();
-
-    newFuncArgs(node);
-
-    // Parse the functions arguments
-    while (current.type != KSCRIPT_TOKEN_TYPE_CLOSED_PAREN &&
-           !tokenVectorEof(tokens, *index)) {
-        // Consume every token before a comma and then pass them to
-        // parserParseFunctionParam
-        while (current.type != KSCRIPT_TOKEN_TYPE_COMMA &&
-               !tokenVectorEof(tokens, *index) &&
-               current.type != KSCRIPT_TOKEN_TYPE_CLOSED_PAREN) {
-            tokenVectorPush(buffer, current);
-            (*index)++;
-
-            current = tokenVectorPeek(tokens, *index);
-        }
-
-        arg = parserParseFunctionParam(buffer, index, source_file);
-        funcArgsPush(node, arg);
-
-        current = tokenVectorPeek(tokens, *index);
-
-        if (current.type == KSCRIPT_TOKEN_TYPE_COMMA) {
-            // Skip the comma
-            (*index)++;
-            current = tokenVectorPeek(tokens, *index);
-        }
-        resetTokenVector(buffer);
-    }
-    if (tokenVectorEof(tokens, *index)) {
-        perr("Expected ')' or function arguments, got <EOF>\n");
-
-        freeTokenVector(buffer);
-
-        freeFuncArgs(arg);
-        freeNode(arg);
-        return newNode();
-    }
-    resetTokenVector(buffer);
-    freeFuncArgs(arg);
-    freeNode(arg);
-
-    (*index)++;
-
-    if (tokenVectorEof(tokens, *index)) {
-        perr("Expected '->', ';' or '{', got <EOF>\n");
-
-        return newNode();
-    }
-
-    if (tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_ARROW &&
-        tokenVectorPeek(tokens, *index).type !=
-                KSCRIPT_TOKEN_TYPE_CBRACKET_OPEN &&
-        tokenVectorPeek(tokens, *index).type != KSCRIPT_TOKEN_TYPE_SEMICOLON) {
-        perr("Expected '->', ';' or '{', got ");
-
-        deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
-        printf("\n");
-
-        return newNode();
-    }
-
-    // Handle the semicolon
-    if (tokenVectorPeek(tokens, *index).type == KSCRIPT_TOKEN_TYPE_SEMICOLON) {
-        node->type         = KSCRIPT_AST_NODE_TYPE_FUNCTION_DEC;
-        node->lexeme       = strdup(literal.s);
-        node->lexeme_owned = true;
-
-        return node;
-    }
-
-    (*index)++;
-
-    if (tokenVectorEof(tokens, *index)) {
-        perr("Expected a type, got <EOF>\n");
-
-        return newNode();
-    }
-
-    // Store the return type in a node
-    ast_node_t* return_type_n = tokenToNode(tokenVectorPeek(tokens, *index));
-    (*index)++;
-
-    if (tokenVectorEof(tokens, *index)) {
-        perr("Expected '{' or ';', got <EOF>\n");
-
-        return newNode();
-    }
-
-    if (tokenVectorPeek(tokens, *index).type == KSCRIPT_TOKEN_TYPE_SEMICOLON) {
-        node->type                  = KSCRIPT_AST_NODE_TYPE_FUNCTION_DEC;
-        node->function_dec.ret_type = return_type_n;
-
-        node->lexeme       = strdup(literal.s);
-        node->lexeme_owned = true;
-
-        return node;
-    }
-
-    if (tokenVectorPeek(tokens, *index).type !=
-        KSCRIPT_TOKEN_TYPE_CBRACKET_OPEN) {
-        perr("Expected '{', got ")
-
-        deTokenizeTokenKeyword(tokenVectorPeek(tokens, *index));
-        printf("\n");
-
-        return newNode();
-    }
-
-    (*index)++;
-
-    // Collect all token until we hit a '}'. Then pass it back to astParseTokens
-    current = tokenVectorPeek(tokens, *index);
-    while (current.type != KSCRIPT_TOKEN_TYPE_CBRACKET_CLOSED &&
-           !tokenVectorEof(tokens, *index)) {
-        tokenVectorPush(buffer, current);
-        current = tokenVectorPeek(tokens, *index);
-        (*index)++;
-    }
-
-    if (tokenVectorEof(tokens, *index)) {
-        perr("Expected '}', got <EOF>\n");
-
-        freeTokenVector(buffer);
-        return newNode();
-    }
-
-    ast_parent_t* code = astParseTokens(buffer, source_file);
-    code->type         = KSCRIPT_AST_NODE_TYPE_ROOT;
-
-    node->function_dec.body     = code;
-    node->function_dec.ret_type = return_type_n;
-
-    node->type         = KSCRIPT_AST_NODE_TYPE_FUNCTION_DEF;
-    node->lexeme       = strdup(literal.s);
-    node->lexeme_owned = true;
-
-    return node; */
+    return newNode();
 }
 
 void parserPrintNodeType(ast_node_t* node) {
