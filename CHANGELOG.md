@@ -1,6 +1,10 @@
 # Changelog
 
 ## 2.6.6-pre-alpha
+- Added symbol table folder to src and symboltable.c file
+- Added a hash table to the symboltable.c file
+
+## 2.6.6-pre-alpha
 - Added 01-Introduction, 02-Getting started and 03-Variables into DOCUMENTATION
 - Added table of contents in ``DOCUMENTATION/README.md``
 - Added support for including everything in the from statement with *
