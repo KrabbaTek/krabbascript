@@ -29,7 +29,7 @@ git --version
 You can then clone the repo with
 
 ```bash
-git clone https://github.com/khytryy/krabbascript
+git clone https://github.com/KrabbaTek/krabbascript
 ```
 
 #### Make

@@ -3,7 +3,6 @@
 [ ] Add functions!
 [x] Make a function that parses the function parameters
 [ ] Make the function parser allow ```function krabba() {}```, functions that dont return anything
-[ ] 
 
 ## Feature todo list
 
@@ -12,8 +11,5 @@
 
 
 ## Bug todo list
-[ ] Fix the memory link from the FreeTokenVector function
-[ ] 
-[ ]
-[ ]
 
+[ ] Fix the memory leak from the FreeTokenVector function
