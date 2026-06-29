@@ -1,1 +1,0 @@
-val epicValue = "Krabba!"; # The compiler will not let you change a val's value unless its a var

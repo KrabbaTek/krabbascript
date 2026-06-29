@@ -5,7 +5,7 @@ Language: Cpp
 # Indentation and spacing
 IndentWidth: 4
 TabWidth: 4
-UseTab: Never
+UseTab: ForIndentation
 ContinuationIndentWidth: 8
 ColumnLimit: 80
 AccessModifierOffset: -4
@@ -16,8 +16,6 @@ IndentPPDirectives: AfterHash
 
 # Braces and layout
 BreakBeforeBraces: Attach
-BraceWrapping:
-  BeforeElse: true
 AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None

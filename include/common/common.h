@@ -1,3 +1,10 @@
+/*
+    KrabbaScript project
+    File: include/common/common.h
+    Contributors:
+        - khytryy (yehor.khytryy@gmail.com)
+*/
+
 #pragma once
 
 #include <dirent.h>
@@ -17,9 +24,12 @@
 
 #ifndef KSCRIPT_VENDOR
 
-#    define KSCRIPT_VENDOR "None"
+#	define KSCRIPT_VENDOR "None"
 
 #endif
+
+extern int errors_generated;
+
 void printUsage();
 
 void usageInit();
@@ -28,8 +38,6 @@ void usageBuild();
 void printKrabba();
 
 int isFile(const char* name);
-
-extern int errors_generated;
 
 void printErrorsGenerated();
 

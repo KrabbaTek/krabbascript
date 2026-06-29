@@ -1,3 +1,0 @@
-func krabba() {
-    std.print("Rooboot\n");
-};

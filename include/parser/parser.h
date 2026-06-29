@@ -1,3 +1,10 @@
+/*
+    KrabbaScript project
+    File: include/parser/parser.h
+    Contributors:
+        - khytryy (yehor.khytryy@gmail.com)
+*/
+
 #pragma once
 
 #define _POSIX_C_SOURCE 200809L
@@ -8,10 +15,10 @@
 #include <types/types.h>
 
 #define perr(msg)                                                              \
-    sourceError(tokenVectorPeek(tokens, *index).line,                          \
-                tokenVectorPeek(tokens, *index).col,                           \
-                source_file,                                                   \
-                msg);
+	sourceError(tokenVectorPeek(tokens, *index).line,                          \
+	            tokenVectorPeek(tokens, *index).col,                           \
+	            source_file,                                                   \
+	            msg);
 
 binding_power_t getBindingPower(token_type type);
 ast_node_type   tokenToExpression(token_t token);

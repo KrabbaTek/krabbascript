@@ -1,14 +1,16 @@
 # Changelog
 
 ## 2.6.6-pre-alpha
-- Added symbol table folder to src and symboltable.c file
-- Added a hash table to the symboltable.c file
-
-## 2.6.6-pre-alpha
 - Added 01-Introduction, 02-Getting started and 03-Variables into DOCUMENTATION
 - Added table of contents in ``DOCUMENTATION/README.md``
 - Added support for including everything in the from statement with *
 - ``main()`` now uses ``err()`` for error reporting
+- Added hash table implementation for the symbol table (Visser13 & khytryy)
+- Added [Unity](https://github.com/ThrowTheSwitch/Unity) testing framework
+- Removed ``std/`` from the project
+- Changed contents of ``tests/`` to contain test code for the compiler
+- Added ``3rd_party/unity/`` folder
+- Changed CONTRIBUTING.md to containg the contributing rules
 
 ## 2.6.5-pre-alpha
 - Centered the logo in README.md

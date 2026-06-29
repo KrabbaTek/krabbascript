@@ -48,3 +48,7 @@ make && sudo make install
 
 This creates the final binary in the project's directory and copies the compiler to `/usr/local/bin/kscript`.
 
+## Libraries used
+- [Unity](https://github.com/ThrowTheSwitch/Unity) by ThrowTheSwitch
+
+Licenses can be found in `3rd_party/xyz/LICENSE.md`

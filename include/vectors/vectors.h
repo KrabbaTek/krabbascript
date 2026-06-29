@@ -1,3 +1,11 @@
+/*
+    KrabbaScript project
+    File: include/vectors/vectors.h
+    Purpose: A vector implementation for the tokenizer
+    Contributors:
+        - khytryy (yehor.khytryy@gmail.com)
+*/
+
 #pragma once
 
 #include <assert.h>
