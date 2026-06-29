@@ -40,9 +40,9 @@ uint64_t        hash(char* key);
 ## Before commiting...
 Before you commit your changes, make sure that:
 
-    - [ ] You have a test suite for your code and you tested it
-    - [ ] You ran `make format`
-    - [ ] You have no errors or warnings popping up when running `make`
+- [ ] You have a test suite for your code and you tested it
+- [ ] You ran `make format`
+- [ ] You have no errors or warnings popping up when running `make`
 
 `make format` uses clang-format to automatically format your code with the `.clang-format` in the project's root directory, worth checking out.
 
