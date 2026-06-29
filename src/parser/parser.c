@@ -797,7 +797,10 @@ parserHandleFrom(token_vector_t* tokens, size_t* index, char* source_file) {
 ast_parent_t*
 parserHandleFunction(token_vector_t* tokens, size_t* index, char* source_file) {
 	// TODO
-
+	(void)tokens;
+	(void)index;
+	(void)source_file;
+	
 	return newNode();
 }
 
