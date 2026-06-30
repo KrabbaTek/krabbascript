@@ -10,6 +10,7 @@
 - [Writing tests for your code](#writing-tests-for-your-code)
 - [Commit messages](#commit-messages)
 - [Writing changelog](#writing-changelog)
+- [Keep main golden](#keep-main-golden)
 
 ## File header
 Every file should start with the following header:
@@ -186,3 +187,6 @@ Commit messages must follow this format: `<Verb> <what> <optional detail>`. If y
 
 ## Writing changelog
 Every time you modify something, you should document it in `CHANGELOG.md` under the current version.
+
+## Keep main golden
+The main branch should only contain "perfect" code with no bugs. Other features that are still buggy should be put in a separate branch called something like `feature/parser-if-handler` or `fix/tokenizer-memory-leak`
