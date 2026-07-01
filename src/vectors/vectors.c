@@ -9,7 +9,7 @@
 #include <vectors/vectors.h>
 
 char_vector_t* newCharVector() {
-	char_vector_t* vec = (char_vector_t*)malloc(sizeof(char_vector_t));
+	char_vector_t* vec = malloc(sizeof(char_vector_t));
 
 	if (!vec) {
 		printf("\033[1;31mALLOCATION ERRO\033[0m: Failed to allocate memory "
@@ -55,7 +55,7 @@ void freeCharVector(char_vector_t* vector) {
 
 void charVectorPush(char_vector_t* vector, char val) {
 	if (vector->data == NULL) {
-		vector->data = (char*)malloc(sizeof(char));
+		vector->data = malloc(sizeof(char));
 
 		vector->capacity = 1;
 	} else if (vector->size >= vector->capacity) {
@@ -86,7 +86,7 @@ char charVectorPeek(char_vector_t* vector, size_t index) {
 }
 
 token_vector_t* newTokenVector() {
-	token_vector_t* vec = (token_vector_t*)malloc(sizeof(token_vector_t));
+	token_vector_t* vec = malloc(sizeof(token_vector_t));
 	if (!vec) {
 		err("Failed to allocate a token vector");
 		exit(1);
@@ -102,7 +102,7 @@ token_vector_t* newTokenVector() {
 
 void tokenVectorPush(token_vector_t* vector, token_t val) {
 	if (!vector->data) {
-		vector->data = (token_t*)malloc(sizeof(token_t));
+		vector->data = malloc(sizeof(token_t));
 
 		vector->capacity = 1;
 	} else if (vector->size >= vector->capacity) {
@@ -184,66 +184,6 @@ void freeNode(ast_node_t* node) {
 	free(node);
 }
 
-symbol_table_t* newSymbolTable() {
-	symbol_table_t* t = (symbol_table_t*)malloc(sizeof(symbol_table_t));
-
-	t->entries = NULL;
-
-	t->size     = 0;
-	t->capacity = 0;
-
-	return t;
-}
-
-void freeSymbolTable(symbol_table_t* table) {
-	if (!table) return;
-
-	if (!table->entries) {
-		free(table);
-		return;
-	} else {
-		free(table->entries);
-		free(table);
-
-		return;
-	}
-}
-
-void symbolTablePush(symbol_table_t* table, st_entry_t entry) {
-	if (table->entries == NULL) {
-		table->entries = (st_entry_t*)malloc(sizeof(st_entry_t));
-
-		table->capacity = 1;
-	} else if (table->size >= table->capacity) {
-		table->capacity *= 2;
-		table->entries =
-		        (st_entry_t*)realloc(table->entries,
-		                             sizeof(st_entry_t) * table->capacity);
-	}
-
-	table->entries[table->size] = entry;
-	table->size++;
-}
-
-st_entry_t symbolTablePop(symbol_table_t* table) {
-	if (table->size > 0) {
-		st_entry_t t = table->entries[table->size - 1];
-
-		table->size--;
-		return t;
-	}
-
-	return (st_entry_t){.type = KSCRIPT_ST_ENTRY_TYPE_EOF};
-}
-
-st_entry_t symbolTablePeek(symbol_table_t* table, size_t index) {
-	if (index > table->size) {
-		return (st_entry_t){.type = KSCRIPT_ST_ENTRY_TYPE_EOF};
-	}
-
-	return table->entries[index];
-}
-
 void newNodeBlock(ast_node_t* node) {
 	node->block.body = NULL;
 
@@ -267,7 +207,7 @@ void freeNodeBlock(ast_node_t* node) {
 
 void nodeBlockPush(ast_node_t* node, ast_node_t* child) {
 	if (node->block.body == NULL) {
-		node->block.body     = (ast_node_t**)malloc(sizeof(ast_node_t*));
+		node->block.body     = malloc(sizeof(ast_node_t*));
 		node->block.capacity = 1;
 	} else if (node->block.size >= node->block.capacity) {
 		node->block.capacity *= 2;
@@ -317,7 +257,7 @@ void freeFuncArgs(ast_node_t* node) {
 
 void funcArgsPush(ast_node_t* node, ast_node_t* child) {
 	if (node->function_dec.args == NULL) {
-		node->function_dec.args = (ast_node_t**)malloc(sizeof(ast_node_t*));
+		node->function_dec.args          = malloc(sizeof(ast_node_t*));
 		node->function_dec.args_capacity = 1;
 	} else if (node->function_dec.args_size >=
 	           node->function_dec.args_capacity) {

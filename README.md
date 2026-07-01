@@ -50,5 +50,6 @@ This creates the final binary in the project's directory and copies the compiler
 
 ## Libraries used
 - [Unity](https://github.com/ThrowTheSwitch/Unity) by ThrowTheSwitch
+- [tomlc17](https://github.com/cktan/tomlc17) by cktan
 
 Licenses can be found in `3rd_party/xyz/LICENSE.md`

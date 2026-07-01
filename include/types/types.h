@@ -12,8 +12,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#ifndef KSCRIPT_HTABLE_BUKKET_SIZE
-#	define KSCRIPT_HTABLE_BUKKET_SIZE 1000
+#ifndef KSCRIPT_HTABLE_BUCKET_SIZE
+// Hash table bucket size
+#	define KSCRIPT_HTABLE_BUCKET_SIZE 1000
 #endif
 
 typedef enum {
@@ -122,9 +123,8 @@ typedef enum {
 
 } token_type;
 
-// TODO: Add line and col to token_t
 typedef struct {
-	token_type type;
+	token_type type; /**< Token type */
 
 	union {
 		int    i;
@@ -135,7 +135,8 @@ typedef struct {
 		bool  b;
 	};
 
-	bool s_owned;
+	bool s_owned; /**< If the s value was mallocated. If it was, s gets cleaned
+	                 up */
 
 	int line;
 	int col;
@@ -226,32 +227,34 @@ typedef struct ast_node_t {
 	struct ast_node_t* right;
 
 	char* lexeme;
-	bool  lexeme_owned;
+	bool  lexeme_owned; /**< If the lexeme value was mallocated. If it was,
+	                       lexeme gets cleaned up */
 
 	int line;
 	int col;
 
-	struct {
-		struct ast_node_t** body;
+	union {
+		struct {
+			struct ast_node_t** body;
 
-		size_t size;
-		size_t capacity;
-	} block;
+			size_t size;
+			size_t capacity;
+		} block;
 
-	struct {
-		struct ast_node_t** args;
+		struct {
+			struct ast_node_t** args;
 
-		size_t args_size;
-		size_t args_capacity;
+			size_t args_size;
+			size_t args_capacity;
 
-		struct ast_node_t* ret_type;
-		struct ast_node_t* body;
-	} function_dec;
+			struct ast_node_t* ret_type;
+			struct ast_node_t* body;
+		} function_dec;
+	};
 
 } ast_node_t;
 
 typedef ast_node_t ast_parent_t;
-typedef ast_node_t expression_t;
 
 typedef struct {
 	float left;
@@ -259,34 +262,26 @@ typedef struct {
 
 } binding_power_t;
 
-typedef enum {
-	KSCRIPT_ST_ENTRY_TYPE_I64,
-	KSCRIPT_ST_ENTRY_TYPE_EOF
-
-} st_entry_type_t;
-
-typedef enum {
-	KSCRIPT_ENTRY_SCOPE_GLOBAL
-
-} st_entry_scope_t;
+typedef enum { KSCRIPT_STABLE_ENUM_SCOPE_GLOBAL } stable_enum_scope_t;
 
 typedef struct {
-	char* symbol;
-	bool  symbol_owned;
+	char* lexeme;
+	bool  lexeme_owned; /**< If the lexeme value was mallocated. If it was,
+	                       lexeme gets cleaned up */
 
-	st_entry_type_t  type;
-	st_entry_scope_t scope;
-} st_entry_t;
+	union {
+		stable_enum_scope_t enum_scope;
+		ast_node_t*         node_scope;
+	} scope;
+} stable_entry_t;
+
+typedef enum {
+	KSCRIPT_PATH_TYPE_FILE,
+	KSCRIPT_PATH_TYPE_DIR,
+	KSCRIPT_PATH_TYPE_NONE
+} path_type;
 
 typedef struct {
-	st_entry_t* entries;
-
-	size_t size;
-	size_t capacity;
-
-} symbol_table_t;
-
-typedef struct htable_entry_t {
 	char* key;
 	bool  key_owned;
 
@@ -296,7 +291,16 @@ typedef struct htable_entry_t {
 	struct htable_entry_t* next_entry;
 } htable_entry_t;
 
-typedef struct hash_table_t {
+typedef struct {
 	size_t           count;
-	htable_entry_t** bukket;
+	htable_entry_t** bucket;
 } hash_table_t;
+
+typedef struct {
+	char*	bin_name;
+
+	// Will be used for VERSION_MAJOR, VERSION_MINOR and VERSION_PATCH macros
+	int		ver_major;
+	int		ver_minor;
+	int		ver_patch;
+} compile_flags_t;

@@ -6,6 +6,7 @@
 */
 
 #include <common/common.h>
+#include <linux/limits.h>
 #include <parser/parser.h>
 #include <stdio.h>
 #include <string.h>
@@ -41,7 +42,7 @@ int main(int argc, char** argv) {
 		}
 
 		int result = isFile(argv[2]);
-		if (result == KSCRIPT_FILE) {
+		if (result == KSCRIPT_PATH_TYPE_FILE) {
 			char_vector_t* source = fileToCharVector(argv[2]);
 
 			token_vector_t* tokens = tokenize(source, argv[2]);
@@ -56,9 +57,15 @@ int main(int argc, char** argv) {
 			freeNode(program);
 		}
 
-		else if (result == KSCRIPT_DIRECTORY) {
-			err("Building directories is not implemented\n");
-			return 1;
+		else if (result == KSCRIPT_PATH_TYPE_DIR) {
+			compile_flags_t* flags = buildDirectory(argv[2]);
+			printErrorsGenerated();
+			
+			err("Directory buidling is not yet implemented, only the manifest parsing\n");
+
+			free(flags->bin_name);
+			free(flags);
+			return 0;
 		} else {
 			err("No such file or directory \"");
 			printf("%s\"\n", argv[2]);
@@ -77,8 +84,52 @@ int main(int argc, char** argv) {
 
 		struct stat st = {0};
 
-		if (stat(argv[2], &st)) {
-			// WIP
+		if (stat(argv[2], &st) == -1) {
+			// Create the directories for the project
+			if (mkdir(argv[2], 0700) == -1) {
+				err("Failed to create project directory\n");
+				return 1;
+			}
+
+			char src_path[PATH_MAX];
+
+			if (snprintf(src_path, sizeof(src_path), "%s/src", argv[2]) >=
+			    (int)sizeof(src_path)) {
+				err("Project path too long\n");
+				return 1;
+			}
+
+			if (mkdir(src_path, 0700) == -1) {
+				err("Failed to create src directory\n");
+				return 1;
+			}
+
+			if (snprintf(src_path,
+			             sizeof(src_path),
+			             "%s/src/main.krs",
+			             argv[2]) >= (int)sizeof(src_path)) {
+				err("Project path too long\n");
+				return 1;
+			}
+
+			// Create a new hello world source file
+			FILE* hello_world = fopen(src_path, "w");
+
+			if (!hello_world) {
+				err("Failed to create main.krs\n");
+				return 1;
+			}
+
+			fprintf(hello_world,
+			        "from <stdlib.krs> import *;\nfunc main() -> i32 {\n    "
+			        "std.print(\"Hello, world!\");\n\n    return 0;\n}\n");
+			fclose(hello_world);
+
+			printf("Initialized %s project\n", argv[2]);
+			return 0;
+		} else {
+			err("Directory already exists\n");
+			return 1;
 		}
 
 	} else if (strcmp(argv[1], "krabba") == 0) {

@@ -1,16 +1,20 @@
 CC      := gcc
-CFLAGS  := -Wall -Wextra -fsanitize=address -fno-omit-frame-pointer -static-libasan -g -O2 -I include -I 3rd_party -DKSCRIPT_VENDOR=\"KrabbaTek\" -MMD -MP -std=c11
+CFLAGS  := -Wall -Wextra -fsanitize=address -fno-omit-frame-pointer -static-libasan -g -O2 -I include -I 3rd_party -DKSCRIPT_VENDOR=\"KrabbaTek\" -MMD -MP -std=c17
 LDFLAGS := -fsanitize=address -fno-omit-frame-pointer
 
-SRC_DIR  := src
+SRC_DIR     := src
+THIRD_PARTY := 3rd_party
 OBJ_DIR  := obj
 TEST_DIR := tests
 TARGET   := kscript
 
-SRCS    := $(shell find $(SRC_DIR) -name "*.c")
-INC     := $(shell find include -name "*.h")
-OBJS    := $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
-DEPS    := $(OBJS:.o=.d)
+SRCS        := $(shell find $(SRC_DIR) -name "*.c")
+THIRD_SRCS  := $(shell find $(THIRD_PARTY) -name "*.c" -not -path "$(THIRD_PARTY)/unity/*")
+
+ALL_SRCS    := $(SRCS) $(THIRD_SRCS)
+OBJS        := $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o) \
+               $(THIRD_SRCS:$(THIRD_PARTY)/%.c=$(OBJ_DIR)/3rd_party/%.o)
+DEPS    	:= $(OBJS:.o=.d)
 
 LIB_OBJS := $(filter-out $(OBJ_DIR)/main.o, $(OBJS))
 
@@ -27,6 +31,11 @@ $(TARGET): $(OBJS)
 	@$(CC) $(OBJS) -o $@ $(LDFLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	@echo "     CC $<"
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/3rd_party/%.o: $(THIRD_PARTY)/%.c
 	@mkdir -p $(dir $@)
 	@echo "     CC $<"
 	@$(CC) $(CFLAGS) -c $< -o $@

@@ -35,17 +35,17 @@ uint64_t hash(char* key) {
 }
 
 hash_table_t* newHashTable() {
-	hash_table_t* table = (hash_table_t*)malloc(sizeof(hash_table_t));
+	hash_table_t* table = malloc(sizeof(hash_table_t));
 	if (!table) {
 		err("Failed to malloc a hash table\n");
 		return NULL;
 	}
 
 	table->count  = 0;
-	table->bukket = (htable_entry_t**)calloc(KSCRIPT_HTABLE_BUKKET_SIZE,
+	table->bucket = (htable_entry_t**)calloc(KSCRIPT_HTABLE_BUCKET_SIZE,
 	                                         sizeof(htable_entry_t*));
 
-	if (!table->bukket) {
+	if (!table->bucket) {
 		err("Failed to calloc hash table entries\n");
 
 		free(table);
@@ -58,10 +58,10 @@ hash_table_t* newHashTable() {
 void freeHashTable(hash_table_t* htable) {
 	if (!htable) return;
 
-	for (size_t i = 0; i < KSCRIPT_HTABLE_BUKKET_SIZE; i++) {
-		htable_entry_t* entry = htable->bukket[i];
+	for (size_t i = 0; i < KSCRIPT_HTABLE_BUCKET_SIZE; i++) {
+		htable_entry_t* entry = htable->bucket[i];
 		while (entry) {
-			htable_entry_t* next = entry->next_entry;
+			htable_entry_t* next = (htable_entry_t*)entry->next_entry;
 
 			if (entry->value_owned) free(entry->value);
 			if (entry->key_owned) free(entry->key);
@@ -71,7 +71,7 @@ void freeHashTable(hash_table_t* htable) {
 		}
 	}
 
-	free(htable->bukket);
+	free(htable->bucket);
 	free(htable);
 }
 
@@ -86,11 +86,11 @@ void htableInsert(hash_table_t* htable, htable_entry_t* entry) {
 		return;
 	}
 
-	uint64_t h = hash(entry->key) % KSCRIPT_HTABLE_BUKKET_SIZE;
+	uint64_t h = hash(entry->key) % KSCRIPT_HTABLE_BUCKET_SIZE;
 
-	entry->next_entry = htable->bukket[h];
+	entry->next_entry = (struct htable_entry_t*)htable->bucket[h];
 
-	htable->bukket[h] = entry;
+	htable->bucket[h] = entry;
 	htable->count++;
 }
 
@@ -100,12 +100,12 @@ htable_entry_t* htableLookUp(hash_table_t* htable, char* key) {
 		return NULL;
 	}
 
-	uint64_t        h     = hash(key) % KSCRIPT_HTABLE_BUKKET_SIZE;
-	htable_entry_t* entry = htable->bukket[h];
+	uint64_t        h     = hash(key) % KSCRIPT_HTABLE_BUCKET_SIZE;
+	htable_entry_t* entry = htable->bucket[h];
 
 	while (entry) {
 		if (strcmp(entry->key, key) == 0) return entry;
-		entry = entry->next_entry;
+		entry = (htable_entry_t*)entry->next_entry;
 	}
 	return NULL;
 }
@@ -116,8 +116,8 @@ void htableDelete(hash_table_t* htable, char* key) {
 		return;
 	}
 
-	uint64_t        index = hash(key) % KSCRIPT_HTABLE_BUKKET_SIZE;
-	htable_entry_t* entry = htable->bukket[index];
+	uint64_t        index = hash(key) % KSCRIPT_HTABLE_BUCKET_SIZE;
+	htable_entry_t* entry = htable->bucket[index];
 	htable_entry_t* prev  = NULL;
 
 	while (entry) {
@@ -125,7 +125,7 @@ void htableDelete(hash_table_t* htable, char* key) {
 			if (prev)
 				prev->next_entry = entry->next_entry;
 			else
-				htable->bukket[index] = entry->next_entry;
+				htable->bucket[index] = (htable_entry_t*)entry->next_entry;
 
 			if (entry->value_owned) free(entry->value);
 			if (entry->key_owned) free(entry->key);
@@ -136,6 +136,6 @@ void htableDelete(hash_table_t* htable, char* key) {
 		}
 
 		prev  = entry;
-		entry = entry->next_entry;
+		entry = (htable_entry_t*)entry->next_entry;
 	}
 }

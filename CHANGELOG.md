@@ -10,7 +10,7 @@
 - Removed ``std/`` from the project
 - Changed contents of ``tests/`` to contain test code for the compiler
 - Added ``3rd_party/unity/`` folder
-- Changed CONTRIBUTING.md to containg the contributing rules
+- Changed CONTRIBUTING.md to contain the contributing rules
 
 ## 2.6.5-pre-alpha
 - Centered the logo in README.md

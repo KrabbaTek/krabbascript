@@ -12,7 +12,7 @@
 void testHashTableLookUp() {
     hash_table_t* t = newHashTable();
 
-    htable_entry_t* e = (htable_entry_t* )malloc(sizeof(htable_entry_t));
+    htable_entry_t* e = malloc(sizeof(htable_entry_t));
 
     e->key = "Krabba!";
     e->key_owned = false;
@@ -30,7 +30,7 @@ void testHashTableLookUp() {
 void testHashTableEntryNoLongerExists() {
     hash_table_t* t = newHashTable();
 
-    htable_entry_t* e = (htable_entry_t* )malloc(sizeof(htable_entry_t));
+    htable_entry_t* e = malloc(sizeof(htable_entry_t));
 
     e->key = "Krabba!";
     e->key_owned = false;

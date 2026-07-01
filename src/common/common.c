@@ -27,17 +27,17 @@ void usageBuild() {
 	printf("Usage: kscript build <file|dir>\n");
 }
 
-int isFile(const char* name) {
+path_type isFile(const char* name) {
 	DIR* directory = opendir(name);
 
 	if (directory != NULL) {
 		closedir(directory);
-		return 0;
+		return KSCRIPT_PATH_TYPE_DIR;
 	}
 
-	if (errno == ENOTDIR) return 1;
+	if (errno == ENOTDIR) return KSCRIPT_PATH_TYPE_FILE;
 
-	return -1;
+	return KSCRIPT_PATH_TYPE_NONE;
 }
 
 void printKrabba() {
@@ -83,4 +83,66 @@ void sourceError(int line, int col, char* source, char* msg) {
 void kscriptError(char* msg) {
 	errors_generated++;
 	printf("\033[1;31mERROR\033[0m: %s", msg);
+}
+
+void kscriptTomlError(char* msg) {
+	errors_generated++;
+	printf("\033[1;31mERROR\033[0m: TOML: %s\n", msg);
+}
+
+compile_flags_t* buildDirectory(char* dir) {
+	compile_flags_t* compile_flags = malloc(sizeof(compile_flags_t));
+
+	char toml_file_path[PATH_MAX];
+
+	snprintf(toml_file_path, sizeof(toml_file_path), "%s/manifest.toml", dir);
+	toml_result_t result = toml_parse_file_ex(toml_file_path);
+
+	if (!result.ok) {
+		terr(result.errmsg);
+		toml_free(result);
+
+		return NULL;
+	}
+
+	// Get the project fields
+	// Project name
+	toml_datum_t project_name = toml_seek(result.toptab, "project.name");
+
+	if (project_name.type == TOML_UNKNOWN) {
+		terr("project.name doesn't exist");
+		toml_free(result);
+
+		return NULL;
+	}
+
+
+	if (project_name.type != TOML_STRING) {
+		terr("project.name must be a string");
+		toml_free(result);
+
+		return NULL;
+	}
+
+	compile_flags->bin_name = strdup(project_name.u.s);
+
+	// Project version
+	toml_datum_t project_ver = toml_seek(result.toptab, "project.version");
+
+	if (project_ver.type == TOML_UNKNOWN) {
+		terr("project.version doesn't exist");
+		toml_free(result);
+
+		return NULL;
+	}
+
+	if (project_ver.type != TOML_STRING) {
+		terr("project.version must be a string");
+		toml_free(result);
+
+		return NULL;
+	}
+
+	toml_free(result);
+	return compile_flags;
 }

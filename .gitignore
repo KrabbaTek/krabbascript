@@ -1,8 +1,6 @@
 kscript
 kscript.*
 
-test.krs
-
 obj/
 
 build/

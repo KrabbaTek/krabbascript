@@ -301,7 +301,7 @@ ast_node_t* tokenToNode(token_t token) {
 	return node;
 }
 
-expression_t*
+ast_parent_t*
 astParseExpression(token_vector_t* tokens, size_t* index, float min_bp) {
 	ast_node_t* lhs;
 
@@ -408,14 +408,6 @@ ast_parent_t* astParseTokens(token_vector_t* tokens, char* source_file) {
 	return root;
 }
 
-symbol_table_t* createSymbolTableFromTokens(token_vector_t* tokens) {
-	(void)tokens;
-	symbol_table_t* t = {0};
-
-	// TODO
-	return t;
-}
-
 ast_parent_t*
 parserHandleVal(token_vector_t* tokens, size_t* index, char* source_file) {
 	if (tokenVectorEof(tokens, *index)) {
@@ -475,7 +467,7 @@ parserHandleVal(token_vector_t* tokens, size_t* index, char* source_file) {
 		}
 
 		size_t        index_exp = 0;
-		expression_t* exp       = astParseExpression(buffer, &index_exp, 0.0f);
+		ast_parent_t* exp       = astParseExpression(buffer, &index_exp, 0.0f);
 		freeTokenVector(buffer);
 
 		ast_parent_t* node = newNode();
@@ -546,7 +538,7 @@ parserHandleVal(token_vector_t* tokens, size_t* index, char* source_file) {
 		}
 
 		size_t        index_exp = 0;
-		expression_t* exp       = astParseExpression(buffer, &index_exp, 0.0f);
+		ast_parent_t* exp       = astParseExpression(buffer, &index_exp, 0.0f);
 
 		ast_parent_t* node = newNode();
 		// Type
@@ -622,7 +614,7 @@ parserHandleVar(token_vector_t* tokens, size_t* index, char* source_file) {
 		}
 
 		size_t        index_exp = 0;
-		expression_t* exp       = astParseExpression(buffer, &index_exp, 0.0f);
+		ast_parent_t* exp       = astParseExpression(buffer, &index_exp, 0.0f);
 		freeTokenVector(buffer);
 
 		ast_parent_t* node = newNode();
@@ -693,7 +685,7 @@ parserHandleVar(token_vector_t* tokens, size_t* index, char* source_file) {
 		}
 
 		size_t        index_exp = 0;
-		expression_t* exp       = astParseExpression(buffer, &index_exp, 0.0f);
+		ast_parent_t* exp       = astParseExpression(buffer, &index_exp, 0.0f);
 
 		ast_parent_t* node = newNode();
 		// Type
@@ -800,11 +792,13 @@ parserHandleFunction(token_vector_t* tokens, size_t* index, char* source_file) {
 	(void)tokens;
 	(void)index;
 	(void)source_file;
-	
+
 	return newNode();
 }
 
 void parserPrintNodeType(ast_node_t* node) {
+	if (!node) return;
+
 	switch (node->type) {
 		case KSCRIPT_AST_NODE_TYPE_DIV:
 			printf("Div");

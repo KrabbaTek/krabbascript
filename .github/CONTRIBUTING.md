@@ -10,6 +10,7 @@
 - [Writing tests for your code](#writing-tests-for-your-code)
 - [Commit messages](#commit-messages)
 - [Writing changelog](#writing-changelog)
+- [Type conversion](#type-conversion)
 
 ## File header
 Every file should start with the following header:
