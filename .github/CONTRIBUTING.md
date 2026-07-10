@@ -189,4 +189,4 @@ Commit messages must follow this format: `<Verb> <what> <optional detail>`. If y
 Every time you modify something, you should document it in `CHANGELOG.md` under the current version.
 
 ## Keep main golden
-The main branch should only contain "perfect" code with no bugs. Other features that are still buggy should be put in a separate branch called something like `feature/parser-if-handler` or `fix/tokenizer-memory-leak`
+The main branch should only contain "perfect" code with no bugs (hopefully). Other features that are still buggy should be commited to the dev branch
