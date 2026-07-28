@@ -1,15 +1,3 @@
-kscript
-kscript.*
-
-test.krs
-
-obj/
-
-build/
 bin/
-
-*.swp
-*~
-Thumbs.db
-
-.vscode/
+build/
+test.krs

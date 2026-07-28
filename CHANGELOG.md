@@ -11,6 +11,7 @@
 - Changed contents of ``tests/`` to contain test code for the compiler
 - Added ``3rd_party/unity/`` folder
 - Changed CONTRIBUTING.md to containg the contributing rules
+- Changed the build "script" from raw makefiles to premake5
 
 ## 2.6.5-pre-alpha
 - Centered the logo in README.md
