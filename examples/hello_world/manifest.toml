@@ -1,0 +1,6 @@
+[project]
+name = "hello_world"
+version = "1.0.0"
+
+src = "src"
+bin = "bin"

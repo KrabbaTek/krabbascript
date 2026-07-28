@@ -1,0 +1,7 @@
+from <stdlib.krs> import *;
+
+func main() -> i32 {
+    std.print("Hello, world!");
+
+    return 0;
+}
