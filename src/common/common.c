@@ -28,6 +28,7 @@ void usageBuild() {
 }
 
 int isFile(const char* name) {
+#ifndef _WIN32
 	DIR* directory = opendir(name);
 
 	if (directory != NULL) {
@@ -38,6 +39,19 @@ int isFile(const char* name) {
 	if (errno == ENOTDIR) return 1;
 
 	return -1;
+#else
+	DWORD attributes = GetFileAttributesW(name);
+
+	if (attributes == INVALID_FILE_ATTRIBUTES) {
+		err("Failed to get file attributes, maybe the file doesn't exist?\n");
+		return -1;
+	}
+
+	if (attributes & FILE_ATTRIBUTE_DIRECTORY)
+		return 0;
+	else
+		return 1;
+#endif
 }
 
 void printKrabba() {

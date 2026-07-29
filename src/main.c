@@ -12,7 +12,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <tokenizer/tokenizer.h>
-#include <unistd.h>
+
+#ifndef _WIN32
+#	include <unistd.h>
+#endif
 
 int main(int argc, char** argv) {
 	if (argc < 2) {
@@ -29,7 +32,7 @@ int main(int argc, char** argv) {
 		       KSCRIPT_VERSION_IDENT,
 		       KSCRIPT_VENDOR);
 
-		printf("Copyright © 2026 KrabbaTek Group\n");
+		printf("Copyright \xC2\xA9 2026 KrabbaTek Group\n");
 
 		return 0;
 	} else if (strcmp(argv[1], "build") == 0) {

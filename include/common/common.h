@@ -7,7 +7,11 @@
 
 #pragma once
 
-#include <dirent.h>
+#ifdef _WIN32
+#	include <windows.h>
+#else
+#	include <dirent.h>
+#endif
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>

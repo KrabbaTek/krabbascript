@@ -800,7 +800,7 @@ parserHandleFunction(token_vector_t* tokens, size_t* index, char* source_file) {
 	(void)tokens;
 	(void)index;
 	(void)source_file;
-	
+
 	return newNode();
 }
 
