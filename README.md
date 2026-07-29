@@ -1,6 +1,6 @@
 # KrabbaScript
-![GitHub License](https://img.shields.io/github/license/khytryy/Krabbascript)
-![GitHub top language](https://img.shields.io/github/languages/top/khytryy/Krabbascript?logo=c&label=)
+![GitHub License](https://img.shields.io/github/license/KrabbaTek/krabbascript)
+![GitHub top language](https://img.shields.io/github/languages/top/KrabbaTek/krabbascript?logo=c&label=)
 
 <div style="center">
     <img width="45%" height="45%" src=".github/logo/kscript_logo.png">

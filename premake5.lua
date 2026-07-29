@@ -14,7 +14,6 @@ function rmdir(p)
     os.rmdir(p)
 end
 
-
 local vendor = "KrabbaTek"
 
 workspace "KrabbaScript"
@@ -77,6 +76,32 @@ newaction {
 
         rmdir("bin")
         rmdir("build")
+
+        print("Done.")
+    end
+}
+
+newaction {
+    trigger     = "format",
+    description = "Formats your code",
+
+    execute = function ()
+        print("Formatting...");
+
+        local headers_t = os.matchfiles("include/**.h")
+        local sources_t = os.matchfiles("src/**.c", "tests/**.c")
+        
+        local headers = ""
+        for i, _ in pairs(headers_t) do
+            headers = headers .. headers_t[i] .. " "
+        end
+
+        local sources = ""
+        for i, _ in pairs(sources_t) do
+            sources = sources .. sources_t[i] .. " "
+        end
+
+        os.execute("clang-format -i " .. sources .. headers)
 
         print("Done.")
     end
