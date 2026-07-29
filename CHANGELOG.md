@@ -14,6 +14,7 @@
 - Changed the build "script" from raw makefiles to premake5
 - Added format action to ``premake5.lua``
 - Changed ``isFile()`` function to use ``windows.h`` when building for windows
+- Changed the copyright character from © to \xC2\xA9 in C code
 
 ## 2.6.5-pre-alpha
 - Centered the logo in README.md
