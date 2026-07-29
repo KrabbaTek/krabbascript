@@ -1,3 +1,9 @@
 bin/
 build/
 test.krs
+
+*.swp
+*~
+Thumbs.db
+
+.vscode/
