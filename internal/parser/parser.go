@@ -1985,12 +1985,22 @@ loop:
 			p.consumeToks(s)
 		case lexer.TokenEol:
 			p.consumeToks(s)
+		case lexer.TokenOpenBrack:
+			scope, _ := p.parseScopeToks(s)
+			p.appendToBlock(ast, scope)
 		default:
-			p.errors = append(p.errors, ParserError{
-				What: fmt.Errorf("%s:%d:%d: unexpected token %s", p.file, t.Line, t.Column, t),
-			})
-
-			p.sync(s)
+			n, err := p.parseExpressionWithMinBpToks(s, 0, true, true)
+			if err != nil {
+				p.errors = append(p.errors, *err)
+				p.sync(s)
+			} else {
+				err = p.skipToks(s, lexer.TokenSemi)
+				if err != nil {
+					p.errors = append(p.errors, *err)
+					p.sync(s)
+				}
+				p.appendToBlock(ast, n)
+			}
 		}
 	}
 
