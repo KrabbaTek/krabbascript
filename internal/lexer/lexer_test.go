@@ -57,7 +57,7 @@ func TestKeywords(t *testing.T) {
 		{"val", "val", TokenVal},
 		{"func", "func", TokenFunc},
 		{"mod", "mod", TokenMod},
-		{"return", "return", TokenReturn},
+		{"ret", "ret", TokenRet},
 		{"if", "if", TokenIf},
 		{"elsif", "elsif", TokenElsif},
 		{"else", "else", TokenElse},
@@ -186,7 +186,7 @@ func TestVariableDeclaration(t *testing.T) {
 }
 
 func TestFunctionDeclaration(t *testing.T) {
-	input := `func add(a: I32, b: I32) -> I32 { return a + b; }`
+	input := `func add(a: I32, b: I32) -> I32 { ret a + b; }`
 
 	expected := []expectedToken{
 		{TokenFunc, ""},
@@ -203,7 +203,7 @@ func TestFunctionDeclaration(t *testing.T) {
 		{TokenArrow, ""},
 		{TokenI32, ""},
 		{TokenOpenBrack, ""},
-		{TokenReturn, ""},
+		{TokenRet, ""},
 		{TokenLiteral, "a"},
 		{TokenPlus, ""},
 		{TokenLiteral, "b"},

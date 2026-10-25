@@ -26,20 +26,13 @@ const (
 	NodeWhenElseArm // when else arm
 	NodeScope       // scope
 
-	NodeReturn            // return
-	NodeAnonymousFunction // anonymous function
-
 	NodeFieldDec  // field dec
 	NodeStructDec // struct dec
 	NodeListInit  // list init
 
-	NodeFunctionArg // function arg
-	NodeFunction    // function
-
 	// Compiler stuff
 	NodeRoot     // root
 	NodeBinOp    // bin op
-	NodeUnary    // unary
 	NodeNumLit   // num lit
 	NodeFloatLit // float lit
 	NodeLit      // lit
@@ -81,12 +74,6 @@ type NodeInfoBlock struct {
 	Elements []*Node
 }
 
-type NodeInfoFunction struct {
-	Args       []*Node
-	ReturnType *Node
-	Body       *Node
-}
-
 func (n *Node) PrintWithDepth(depth int) {
 	if n == nil {
 		return
@@ -107,24 +94,9 @@ func (n *Node) PrintWithDepth(depth int) {
 		switch i := n.ExtraInfo.(type) {
 		case *NodeInfoBlock:
 			fmt.Println(" -> block:")
-
 			for i, el := range i.Elements {
 				fmt.Printf("%s   [%d]:\n", offset, i)
 				el.PrintWithDepth(depth + 2)
-			}
-		case *NodeInfoFunction:
-			fmt.Println(" -> function:")
-
-			fmt.Printf("%s   return:\n", offset)
-			i.ReturnType.PrintWithDepth(depth + 2)
-
-			fmt.Printf("%s   body:\n", offset)
-			i.Body.PrintWithDepth(depth + 2)
-
-			fmt.Printf("%s   args:\n", offset)
-			for i, arg := range i.Args {
-				fmt.Printf("%s      [%d]:\n", offset, i)
-				arg.PrintWithDepth(depth + 3)
 			}
 		default:
 			fmt.Printf(" -> einfo: %v\n", i)

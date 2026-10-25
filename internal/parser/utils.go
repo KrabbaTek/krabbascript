@@ -2,9 +2,8 @@ package parser
 
 import (
 	"fmt"
+	"kscript/internal/lexer"
 	"strings"
-
-	"github.com/KrabbaTek/krabbascript/internal/lexer"
 )
 
 func (p *Parser) currentToks(s *TokenStream) lexer.Token {
