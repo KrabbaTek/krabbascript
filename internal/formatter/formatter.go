@@ -37,6 +37,13 @@ func InsertSemicolons(lines []string) []string {
 		strings.HasSuffix(line, "[") ||
 		strings.HasSuffix(line, ",") ||
 		strings.HasSuffix(line, ":") ||
+		strings.HasSuffix(line, "&&") ||
+		strings.HasSuffix(line, "||") ||
+		strings.HasSuffix(line, "+") ||
+		strings.HasSuffix(line, "-") ||
+		strings.HasSuffix(line, "*") ||
+		strings.HasSuffix(line, "/") ||
+		strings.HasSuffix(line, "%") ||
 		strings.HasPrefix(line, "#") {
 			newLines = append(newLines, line)
 		} else {
