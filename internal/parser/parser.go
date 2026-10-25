@@ -1814,7 +1814,10 @@ func (p *Parser) parseAnonymousFunction(s *TokenStream) (*Node, *ParserError) {
 		fnInfo.ReturnType = typ
 
 		// Parse the body
-		body, _ := p.parseScopeToks(s)
+		body, perr := p.parseScopeToks(s)
+		if perr != nil {
+			return nil, perr
+		}
 		fnInfo.Body = body
 
 		fn.ExtraInfo = &fnInfo
@@ -1986,8 +1989,13 @@ loop:
 		case lexer.TokenEol:
 			p.consumeToks(s)
 		case lexer.TokenOpenBrack:
-			scope, _ := p.parseScopeToks(s)
-			p.appendToBlock(ast, scope)
+			scope, err := p.parseScopeToks(s)
+			if err != nil {
+				p.errors = append(p.errors, *err)
+				p.sync(s)
+			} else {
+				p.appendToBlock(ast, scope)
+			}
 		default:
 			n, err := p.parseExpressionWithMinBpToks(s, 0, true, true)
 			if err != nil {
