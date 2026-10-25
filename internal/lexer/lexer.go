@@ -75,7 +75,7 @@ func newKeywords() map[string]TokenType {
 		"val":    TokenVal,
 		"func":   TokenFunc,
 		"mod":    TokenMod,
-		"ret":    TokenRet,
+		"return": TokenReturn,
 		"if":     TokenIf,
 		"elsif":  TokenElsif,
 		"else":   TokenElse,

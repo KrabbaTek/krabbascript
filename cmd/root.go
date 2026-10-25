@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"kscript/internal/version"
 	"os"
+
+	"github.com/KrabbaTek/krabbascript/internal/version"
 
 	"github.com/spf13/cobra"
 )

@@ -10,7 +10,7 @@ const (
 	TokenVal
 	TokenFunc
 	TokenMod
-	TokenRet
+	TokenReturn
 
 	TokenIf
 	TokenElsif
@@ -116,7 +116,7 @@ func (tt TokenType) String() string {
 		TokenVal:    "val",
 		TokenFunc:   "func",
 		TokenMod:    "mod",
-		TokenRet:    "ret",
+		TokenReturn: "return",
 		TokenIf:     "if",
 		TokenElsif:  "elsif",
 		TokenElse:   "else",
@@ -191,7 +191,7 @@ func (tt TokenType) String() string {
 		TokenFloatLiteral: "float literal",
 		TokenNone:         "none",
 		TokenEof:          "eof",
-		TokenEol:          "eol",
+		TokenEol:          "newline",
 	}
 
 	if int(tt) >= 0 && int(tt) < len(tokens) {

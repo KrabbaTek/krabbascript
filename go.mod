@@ -1,4 +1,4 @@
-module kscript
+module github.com/KrabbaTek/krabbascript
 
 go 1.27.1
 

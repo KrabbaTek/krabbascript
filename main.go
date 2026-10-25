@@ -1,7 +1,7 @@
 package main
 
 import (
-	"kscript/cmd"
+	"github.com/KrabbaTek/krabbascript/cmd"
 )
 
 func main() {

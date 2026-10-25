@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"kscript/internal/lexer"
-	"kscript/internal/parser"
-	"kscript/tools"
 	"os"
+
+	"github.com/KrabbaTek/krabbascript/internal/lexer"
+	"github.com/KrabbaTek/krabbascript/internal/parser"
+	"github.com/KrabbaTek/krabbascript/tools"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"

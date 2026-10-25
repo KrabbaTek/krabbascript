@@ -1,8 +1,9 @@
 package parser
 
 import (
-	"kscript/internal/lexer"
 	"testing"
+
+	"github.com/KrabbaTek/krabbascript/internal/lexer"
 )
 
 func TestListInitializer(t *testing.T) {
