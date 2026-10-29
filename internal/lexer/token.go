@@ -27,6 +27,7 @@ const (
 	TokenLater
 	TokenSic
 	TokenDo
+	TokenNull
 
 	// Types
 	TokenBool
@@ -133,6 +134,7 @@ func (tt TokenType) String() string {
 		TokenDo:     "do",
 		TokenLater:  "later",
 		TokenSic:    "sic",
+		TokenNull:   "null",
 
 		// Types
 		TokenBool: "Bool",

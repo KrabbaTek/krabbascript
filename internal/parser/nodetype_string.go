@@ -35,29 +35,30 @@ func _() {
 	_ = x[NodeUnary-24]
 	_ = x[NodeNumLit-25]
 	_ = x[NodeFloatLit-26]
-	_ = x[NodeLit-27]
-	_ = x[NodeStrLit-28]
-	_ = x[NodeArray-29]
-	_ = x[NodeIndex-30]
-	_ = x[NodeFunctionCall-31]
-	_ = x[NodeI64Type-32]
-	_ = x[NodeI32Type-33]
-	_ = x[NodeI16Type-34]
-	_ = x[NodeI8Type-35]
-	_ = x[NodeU64Type-36]
-	_ = x[NodeU32Type-37]
-	_ = x[NodeU16Type-38]
-	_ = x[NodeU8Type-39]
-	_ = x[NodeF64Type-40]
-	_ = x[NodeF32Type-41]
-	_ = x[NodeStrType-42]
-	_ = x[NodeBoolType-43]
-	_ = x[NodeAnyType-44]
+	_ = x[NodeNullLit-27]
+	_ = x[NodeLit-28]
+	_ = x[NodeStrLit-29]
+	_ = x[NodeArray-30]
+	_ = x[NodeIndex-31]
+	_ = x[NodeFunctionCall-32]
+	_ = x[NodeI64Type-33]
+	_ = x[NodeI32Type-34]
+	_ = x[NodeI16Type-35]
+	_ = x[NodeI8Type-36]
+	_ = x[NodeU64Type-37]
+	_ = x[NodeU32Type-38]
+	_ = x[NodeU16Type-39]
+	_ = x[NodeU8Type-40]
+	_ = x[NodeF64Type-41]
+	_ = x[NodeF32Type-42]
+	_ = x[NodeStrType-43]
+	_ = x[NodeBoolType-44]
+	_ = x[NodeAnyType-45]
 }
 
-const _NodeType_name = "variable defvariable decvalue defif statementelsif statementelse statementimport statementwhen statementmodule importmodule pathwhen armwhen else armscopelatersicreturnanonymous functionfield decstruct declist initfunction argfunctionrootbin opunarynum litfloat litlitstr litarrayindexfunction callI64 typeI32 typeI16 typeI8 typeU64 typeU32 typeU16 typeU8 typeF64 typeF32 typeStr typeBool typeAny type"
+const _NodeType_name = "variable defvariable decvalue defif statementelsif statementelse statementimport statementwhen statementmodule importmodule pathwhen armwhen else armscopelatersicreturnanonymous functionfield decstruct declist initfunction argfunctionrootbin opunarynum litfloat litnull litlitstr litarrayindexfunction callI64 typeI32 typeI16 typeI8 typeU64 typeU32 typeU16 typeU8 typeF64 typeF32 typeStr typeBool typeAny type"
 
-var _NodeType_index = [...]uint16{0, 12, 24, 33, 45, 60, 74, 90, 104, 117, 128, 136, 149, 154, 159, 162, 168, 186, 195, 205, 214, 226, 234, 238, 244, 249, 256, 265, 268, 275, 280, 285, 298, 306, 314, 322, 329, 337, 345, 353, 360, 368, 376, 384, 393, 401}
+var _NodeType_index = [...]uint16{0, 12, 24, 33, 45, 60, 74, 90, 104, 117, 128, 136, 149, 154, 159, 162, 168, 186, 195, 205, 214, 226, 234, 238, 244, 249, 256, 265, 273, 276, 283, 288, 293, 306, 314, 322, 330, 337, 345, 353, 361, 368, 376, 384, 392, 401, 409}
 
 func (i NodeType) String() string {
 	idx := int(i) - 0
