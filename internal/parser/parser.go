@@ -2070,6 +2070,22 @@ func (p *Parser) parseSicToks(s *TokenStream) (*Node, *ParserError) {
 	}, nil
 }
 
+func (p *Parser) parseModuleToks(s *TokenStream) (*Node, *ParserError) {
+	start := p.consumeToks(s)
+
+	scope, err := p.parseScopeToks(s)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Node{
+		line:   start.Line,
+		column: start.Column,
+		Type:   NodeModule,
+		Right:  scope,
+	}, nil
+}
+
 func (p *Parser) appendToBlock(block *Node, node *Node) {
 	switch v := block.ExtraInfo.(type) {
 	case *NodeInfoBlock:
@@ -2232,6 +2248,14 @@ loop:
 			}
 		case lexer.TokenLater:
 			n, err := p.parseLaterToks(s)
+			if err != nil {
+				p.errors = append(p.errors, *err)
+				p.sync(s)
+			} else {
+				p.appendToBlock(ast, n)
+			}
+		case lexer.TokenMod:
+			n, err := p.parseModuleToks(s)
 			if err != nil {
 				p.errors = append(p.errors, *err)
 				p.sync(s)
