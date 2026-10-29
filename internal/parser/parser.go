@@ -53,6 +53,7 @@ func newBindings() map[lexer.TokenType]Binding {
 		lexer.TokenBxorEq:  {BindingPrecedence: PrecedenceAssignment, BindingSide: RightSide},
 		// Postfix ((), [],.)
 		lexer.TokenOpenParen:   {BindingPrecedence: PrecedencePostfix, BindingSide: LeftSide},
+		lexer.TokenNot:         {BindingPrecedence: PrecedencePostfix, BindingSide: LeftSide},
 		lexer.TokenOpenSqBrack: {BindingPrecedence: PrecedencePostfix, BindingSide: LeftSide},
 		lexer.TokenDot:         {BindingPrecedence: PrecedencePostfix, BindingSide: LeftSide},
 		lexer.TokenPlusPlus:    {BindingPrecedence: PrecedencePostfix, BindingSide: LeftSide},
@@ -522,6 +523,22 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 
 			fnInfo.Args = args
 			fnInfo.Callee = left
+
+			fn.ExtraInfo = fnInfo
+			left = &fn
+
+		case lexer.TokenNot:
+			p.consumeToks(s)
+
+			fn := Node{
+				line:   left.line,
+				column: left.column,
+				Type:   NodeFunctionCall,
+			}
+
+			fnInfo := &NodeInfoFunctionCall{
+				Callee: left,
+			}
 
 			fn.ExtraInfo = fnInfo
 			left = &fn
