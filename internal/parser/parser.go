@@ -216,8 +216,10 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 		lexer.TokenAny,
 		lexer.TokenArr,
 		lexer.TokenDo,
+
 		lexer.TokenPlus,
 		lexer.TokenMinus,
+		lexer.TokenNot,
 	)
 	var left *Node
 	if err != nil {
@@ -294,6 +296,23 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 			column: current.Column,
 			Type:   NodeUnary,
 			Lexeme: "-",
+		}
+
+		p.consumeToks(s)
+
+		expr, err := p.parseExpressionWithMinBpToks(s, int(PrecedenceUnary), allowListInits, allowAnonymousFuncs)
+		if err != nil {
+			return nil, err
+		}
+
+		left.Right = expr
+
+	} else if current.Type == lexer.TokenNot {
+		left = &Node{
+			line:   current.Line,
+			column: current.Column,
+			Type:   NodeUnary,
+			Lexeme: "!",
 		}
 
 		p.consumeToks(s)
