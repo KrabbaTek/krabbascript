@@ -21,6 +21,7 @@ const (
 
 	NodeModuleImport // module import
 	NodeModulePath   // module path
+	NodeModule       // module
 
 	NodeWhenArm     // when arm
 	NodeWhenElseArm // when else arm
