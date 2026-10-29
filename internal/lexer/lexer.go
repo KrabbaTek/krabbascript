@@ -89,6 +89,7 @@ func newKeywords() map[string]TokenType {
 		"import": TokenImport,
 		"do":     TokenDo,
 		"later":  TokenLater,
+		"sic":    TokenSic,
 
 		// Types
 		"I64":  TokenI64,

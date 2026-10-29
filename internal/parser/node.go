@@ -26,6 +26,7 @@ const (
 	NodeWhenElseArm // when else arm
 	NodeScope       // scope
 	NodeLater       // later
+	NodeSic         // sic
 
 	NodeReturn            // return
 	NodeAnonymousFunction // anonymous function
