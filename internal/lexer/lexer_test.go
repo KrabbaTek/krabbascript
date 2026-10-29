@@ -71,6 +71,7 @@ func TestKeywords(t *testing.T) {
 		{"import", "import", TokenImport},
 		{"do", "do", TokenDo},
 		{"sic", "sic", TokenSic},
+		{"null", "null", TokenNull},
 	}
 
 	for _, tt := range tests {

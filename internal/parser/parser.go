@@ -220,6 +220,7 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 		lexer.TokenPlus,
 		lexer.TokenMinus,
 		lexer.TokenNot,
+		lexer.TokenNull,
 	)
 	var left *Node
 	if err != nil {
@@ -383,6 +384,9 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 
 		case lexer.TokenLiteral:
 			nodeType = NodeLit
+
+		case lexer.TokenNull:
+			nodeType = NodeNullLit
 
 		default:
 			return nil, &ParserError{
