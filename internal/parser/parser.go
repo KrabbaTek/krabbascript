@@ -885,7 +885,10 @@ exit:
 func (p *Parser) parseScopeToks(s *TokenStream) (*Node, *ParserError) {
 	err := p.skipToks(s, lexer.TokenOpenBrack)
 	if err != nil {
-		return nil, err
+		c := p.currentToks(s)
+		return nil, &ParserError{
+			What: fmt.Errorf("%s:%d:%d: expected a scope, got %s", p.file, c.Line, c.Column, c),
+		}
 	}
 
 	var toks []lexer.Token
@@ -911,7 +914,10 @@ func (p *Parser) parseScopeToks(s *TokenStream) (*Node, *ParserError) {
 
 	err = p.skipToks(s, lexer.TokenClosedBrack)
 	if err != nil {
-		return nil, err
+		c := p.currentToks(s)
+		return nil, &ParserError{
+			What: fmt.Errorf("%s:%d:%d: expected end of scope ('}'), got %s", p.file, c.Line, c.Column, c),
+		}
 	}
 
 	if len(toks) == 0 {
@@ -2044,6 +2050,22 @@ func (p *Parser) parseLaterToks(s *TokenStream) (*Node, *ParserError) {
 	}, nil
 }
 
+func (p *Parser) parseSicToks(s *TokenStream) (*Node, *ParserError) {
+	start := p.consumeToks(s)
+
+	scope, err := p.parseScopeToks(s)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Node{
+		line:   start.Line,
+		column: start.Column,
+		Type:   NodeSic,
+		Right:  scope,
+	}, nil
+}
+
 func (p *Parser) appendToBlock(block *Node, node *Node) {
 	switch v := block.ExtraInfo.(type) {
 	case *NodeInfoBlock:
@@ -2158,6 +2180,14 @@ loop:
 			}
 		case lexer.TokenStruct:
 			n, err := p.parseStructToks(s)
+			if err != nil {
+				p.errors = append(p.errors, *err)
+				p.sync(s)
+			} else {
+				p.appendToBlock(ast, n)
+			}
+		case lexer.TokenSic:
+			n, err := p.parseSicToks(s)
 			if err != nil {
 				p.errors = append(p.errors, *err)
 				p.sync(s)

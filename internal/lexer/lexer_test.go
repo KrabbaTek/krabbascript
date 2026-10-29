@@ -70,6 +70,7 @@ func TestKeywords(t *testing.T) {
 		{"struct", "struct", TokenStruct},
 		{"import", "import", TokenImport},
 		{"do", "do", TokenDo},
+		{"sic", "sic", TokenSic},
 	}
 
 	for _, tt := range tests {
