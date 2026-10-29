@@ -94,9 +94,13 @@ func (p *Parser) parseListInit(s *TokenStream) (*Node, *ParserError) {
 		}
 
 		switch t.Type {
-		case lexer.TokenOpenBrack:
+		case lexer.TokenOpenParen,
+			lexer.TokenOpenSqBrack,
+			lexer.TokenOpenBrack:
 			depth++
-		case lexer.TokenClosedBrack:
+		case lexer.TokenClosedParen,
+			lexer.TokenClosedSqBrack,
+			lexer.TokenClosedBrack:
 			depth--
 		}
 
@@ -141,6 +145,52 @@ func (p *Parser) parseListInit(s *TokenStream) (*Node, *ParserError) {
 	}
 
 	return left, nil
+}
+
+func (p *Parser) parseFunctionArgs(s *TokenStream) ([]*Node, *ParserError) {
+	var args []*Node
+
+	for {
+		// Error on call(,) and just return on call()
+		current := p.currentToks(s)
+		switch current.Type {
+		case lexer.TokenEof:
+			return args, nil
+		case lexer.TokenComma:
+			return nil, &ParserError{
+				What: fmt.Errorf("%s:%d:%d: expected an expression before ','", p.file, current.Line, current.Column),
+				Fix:  "remove the trailing comma",
+			}
+		}
+
+		// Parse the expression
+		expr, err := p.parseExpressionWithMinBpToks(s, 0, true, true)
+		if err != nil {
+			return nil, err
+		}
+
+		// Add the expression to the args
+		args = append(args, expr)
+
+		err = p.expectToks(s, lexer.TokenComma, lexer.TokenEof)
+		if err != nil {
+			return nil, err
+		}
+
+		// Skip the comma
+		if p.currentToks(s).Type == lexer.TokenComma {
+			p.consumeToks(s)
+
+			// Check if it's EOF after the comma
+			current = p.currentToks(s)
+			if current.Type == lexer.TokenEof {
+				return nil, &ParserError{
+					What: fmt.Errorf("%s:%d:%d: expected an expression after ','", p.file, current.Line, current.Column),
+					Fix:  "remove the trailing comma",
+				}
+			}
+		}
+	}
 }
 
 func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowListInits bool, allowAnonymousFuncs bool) (*Node, *ParserError) {
@@ -394,6 +444,88 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 			}
 
 			left = nodeOp
+		case lexer.TokenOpenParen:
+			start := p.consumeToks(s)
+
+			fn := Node{
+				line:   left.line,
+				column: left.column,
+				Type:   NodeFunctionCall,
+			}
+
+			fnInfo := &NodeInfoFunctionCall{}
+
+			// Collect everything untill ) into a buffer
+			// Since we skipped a (, we have to increment depth
+			depth := 1
+			var toks []lexer.Token
+
+			for {
+				t := p.currentToks(s)
+
+				if t.Type == lexer.TokenEof {
+					return nil, &ParserError{
+						What: fmt.Errorf(
+							"%s:%d:%d: unclosed parentheses",
+							p.file, start.Line, start.Column,
+						),
+					}
+				}
+
+				switch t.Type {
+				case lexer.TokenOpenParen,
+					lexer.TokenOpenSqBrack,
+					lexer.TokenOpenBrack:
+					depth++
+				case lexer.TokenClosedParen,
+					lexer.TokenClosedSqBrack,
+					lexer.TokenClosedBrack:
+					depth--
+				}
+
+				if depth == 0 {
+					break
+				}
+
+				toks = append(toks, t)
+				p.consumeToks(s)
+			}
+
+			err = p.skipToks(s, lexer.TokenClosedParen)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(toks) == 0 {
+				toks = append(toks, lexer.Token{
+					Line:   start.Line,
+					Column: start.Column,
+					Type:   lexer.TokenEof,
+				})
+			} else {
+				last := toks[len(toks)-1]
+				toks = append(toks, lexer.Token{
+					Line:   last.Line,
+					Column: last.Column,
+					Type:   lexer.TokenEof,
+				})
+			}
+
+			stream := TokenStream{
+				toks: toks,
+				pos:  0,
+			}
+			args, err := p.parseFunctionArgs(&stream)
+			if err != nil {
+				return nil, err
+			}
+
+			fnInfo.Args = args
+			fnInfo.Callee = left
+
+			fn.ExtraInfo = fnInfo
+			left = &fn
+
 		default:
 			p.consumeToks(s)
 			nodeOp := &Node{
@@ -893,40 +1025,23 @@ func (p *Parser) parseStructToks(s *TokenStream) (*Node, *ParserError) {
 	return n, nil
 }
 
-/*
-Some code for trimming { 1, 2 }, 3 for example
-
-Get current
-Depth = 0
-
-While current != EOF
-    While Depth > 0 || current != , && current != EOF
-        If current == {
-            Depth++
-        Else if current == }
-            If Depth == 0 Error out
-            Depth--
-
-        Add to buffer
-        Update current
-
-    If Depth != 0 Error out
-
-    Add buffer to the array of token streams
-    Clear buffer
-
-    If current == EOF break
-    Else skip ,
-
-Return trimmed
-*/
-
 func (p *Parser) trimListInit(s *TokenStream) ([]TokenStream, *ParserError) {
 	var trimmed []TokenStream
 	var buffer []lexer.Token
 	depth := 0
 
-	// Delete the { if present
+	// Flush ends the current element with an EOF token positioned at `at`.
+	flush := func(at lexer.Token) {
+		buffer = append(buffer, lexer.Token{
+			Line:   at.Line,
+			Column: at.Column,
+			Type:   lexer.TokenEof,
+		})
+		trimmed = append(trimmed, TokenStream{toks: buffer, pos: 0})
+		buffer = nil
+	}
+
+	// Consume the opening { if present
 	if p.currentToks(s).Type == lexer.TokenOpenBrack {
 		p.consumeToks(s)
 	}
@@ -934,85 +1049,118 @@ func (p *Parser) trimListInit(s *TokenStream) ([]TokenStream, *ParserError) {
 	for {
 		t := p.currentToks(s)
 
-		if t.Type == lexer.TokenEof || (t.Type == lexer.TokenClosedBrack && depth == 0) {
+		if t.Type == lexer.TokenEof {
+			return nil, &ParserError{
+				What: fmt.Errorf("%s:%d:%d: unclosed list initializer, expected }", p.file, t.Line, t.Column),
+			}
+		}
+		if t.Type == lexer.TokenClosedBrack && depth == 0 {
 			break
 		}
 
 		if t.Type == lexer.TokenComma && depth == 0 {
+			if len(buffer) == 0 {
+				return nil, &ParserError{
+					What: fmt.Errorf("%s:%d:%d: expected an element before ','", p.file, t.Line, t.Column),
+				}
+			}
+			flush(t)
 			p.consumeToks(s)
 
-			start := p.currentToks(s) // Save this for error handling
-			if start.Type == lexer.TokenClosedBrack {
+			next := p.currentToks(s)
+			if next.Type == lexer.TokenClosedBrack {
 				return nil, &ParserError{
-					What: fmt.Errorf("%s:%d:%d: expected an element, got {", p.file, start.Line, start.Column),
+					What: fmt.Errorf("%s:%d:%d: expected an element after ',', got }", p.file, next.Line, next.Column),
 				}
 			}
-			if len(buffer) > 0 {
-				buffer = append(buffer, lexer.Token{
-					Line:   t.Line,
-					Column: t.Column,
-					Type:   lexer.TokenEof,
-				})
-
-				trimmed = append(trimmed, TokenStream{
-					toks: buffer,
-					pos:  0,
-				})
-
-				buffer = nil
-			}
-
 			continue
 		}
+
 		switch t.Type {
-		case lexer.TokenOpenBrack:
+		case lexer.TokenOpenBrack,
+			lexer.TokenOpenSqBrack,
+			lexer.TokenOpenParen:
 			depth++
-		case lexer.TokenClosedBrack:
+		case lexer.TokenClosedBrack,
+			lexer.TokenClosedSqBrack,
+			lexer.TokenClosedParen:
 			depth--
-			if depth < 0 {
-				return nil, &ParserError{
-					What: fmt.Errorf("%s:%d:%d: unexpected closing bracket", p.file, t.Line, t.Column),
-				}
-			}
 		}
 
 		buffer = append(buffer, t)
 		p.consumeToks(s)
 	}
 
-	if depth != 0 {
-		t := p.currentToks(s)
-		return nil, &ParserError{
-			What: fmt.Errorf("%s:%d:%d: unclosed bracket", p.file, t.Line, t.Column),
-		}
-	}
-
+	// Last element (no trailing comma)
 	if len(buffer) > 0 {
-		buffer = append(buffer, lexer.Token{
-			Line:   1,
-			Column: 1,
-			Type:   lexer.TokenEof,
-		})
-
-		trimmed = append(trimmed, TokenStream{
-			toks: buffer,
-			pos:  0,
-		})
+		flush(p.currentToks(s)) // current token is the closing }
 	}
 
-	// Same thing for }
-	if p.currentToks(s).Type == lexer.TokenClosedBrack {
-		p.consumeToks(s)
-	}
+	// Consume the closing }
+	p.consumeToks(s)
 
 	return trimmed, nil
 }
 
-// TODO: Parse the condition into a stream and feed it to parseExpression
+func (p *Parser) parseConditionToks(s *TokenStream, kw lexer.Token) (*Node, *ParserError) {
+	// Find the end of the line
+	end := s.pos
+	for end < len(s.toks) &&
+		s.toks[end].Type != lexer.TokenEol &&
+		s.toks[end].Type != lexer.TokenEof {
+		end++
+	}
+
+	// The last token on the line must be the { that opens the body
+	if end == s.pos || s.toks[end-1].Type != lexer.TokenOpenBrack {
+		at := kw
+		if end > s.pos {
+			at = s.toks[end-1]
+		}
+		return nil, &ParserError{
+			What: fmt.Errorf("%s:%d:%d: expected { at the end of the line", p.file, at.Line, at.Column),
+		}
+	}
+
+	brace := end - 1
+	if brace == s.pos {
+		return nil, &ParserError{
+			What: fmt.Errorf("%s:%d:%d: expected a condition", p.file, kw.Line, kw.Column),
+		}
+	}
+
+	// Copy the condition tokens and terminate them with an EOF at the {
+	toks := make([]lexer.Token, 0, brace-s.pos+1)
+	toks = append(toks, s.toks[s.pos:brace]...)
+	toks = append(toks, lexer.Token{
+		Line:   s.toks[brace].Line,
+		Column: s.toks[brace].Column,
+		Type:   lexer.TokenEof,
+	})
+	cond := &TokenStream{toks: toks, pos: 0}
+
+	// Leave s sitting on the { for parseScopeToks
+	s.pos = brace
+
+	expr, err := p.parseExpressionWithMinBpToks(cond, 0, false, false)
+	if err != nil {
+		return nil, err
+	}
+
+	// The whole condition must have been consumed
+	if t := p.currentToks(cond); t.Type != lexer.TokenEof {
+		return nil, &ParserError{
+			What: fmt.Errorf("%s:%d:%d: unexpected token in condition", p.file, t.Line, t.Column),
+		}
+	}
+
+	return expr, nil
+}
+
 func (p *Parser) parseIfToks(s *TokenStream) (*Node, *ParserError) {
 	start := p.consumeToks(s) // Will use this for the line, col fields
 
-	expr, err := p.parseExpressionWithMinBpToks(s, 0, false, false)
+	expr, err := p.parseConditionToks(s, start)
 	if err != nil {
 		return nil, err
 	}
@@ -1040,7 +1188,7 @@ func (p *Parser) parseIfToks(s *TokenStream) (*Node, *ParserError) {
 func (p *Parser) parseElsifToks(s *TokenStream) (*Node, *ParserError) {
 	start := p.consumeToks(s)
 
-	expr, err := p.parseExpressionWithMinBpToks(s, 0, false, false)
+	expr, err := p.parseConditionToks(s, start)
 	if err != nil {
 		return nil, err
 	}
@@ -1997,7 +2145,7 @@ loop:
 				p.appendToBlock(ast, scope)
 			}
 		default:
-			n, err := p.parseExpressionWithMinBpToks(s, 0, true, true)
+			n, err := p.parseExpressionWithMinBpToks(s, 0, false, false)
 			if err != nil {
 				p.errors = append(p.errors, *err)
 				p.sync(s)

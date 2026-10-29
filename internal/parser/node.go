@@ -37,15 +37,16 @@ const (
 	NodeFunction    // function
 
 	// Compiler stuff
-	NodeRoot     // root
-	NodeBinOp    // bin op
-	NodeUnary    // unary
-	NodeNumLit   // num lit
-	NodeFloatLit // float lit
-	NodeLit      // lit
-	NodeStrLit   // str lit
-	NodeArray    // array
-	NodeIndex    // index
+	NodeRoot         // root
+	NodeBinOp        // bin op
+	NodeUnary        // unary
+	NodeNumLit       // num lit
+	NodeFloatLit     // float lit
+	NodeLit          // lit
+	NodeStrLit       // str lit
+	NodeArray        // array
+	NodeIndex        // index
+	NodeFunctionCall // function call
 
 	// Types
 	NodeI64Type // I64 type
@@ -87,6 +88,11 @@ type NodeInfoFunction struct {
 	Body       *Node
 }
 
+type NodeInfoFunctionCall struct {
+	Args   []*Node
+	Callee *Node
+}
+
 func (n *Node) PrintWithDepth(depth int) {
 	if n == nil {
 		return
@@ -94,7 +100,7 @@ func (n *Node) PrintWithDepth(depth int) {
 
 	offset := strings.Repeat("   ", depth)
 
-	// Print nodes type and lexeme
+	// Print node's type and lexeme
 	if n.Lexeme == "" {
 		// Don't print the lexeme if it's empty
 		fmt.Printf("%s%s", offset, n.Type)
@@ -104,11 +110,11 @@ func (n *Node) PrintWithDepth(depth int) {
 
 	// Print any extra info the node carries
 	if n.ExtraInfo != nil {
-		switch i := n.ExtraInfo.(type) {
+		switch info := n.ExtraInfo.(type) {
 		case *NodeInfoBlock:
 			fmt.Println(" -> block:")
 
-			for i, el := range i.Elements {
+			for i, el := range info.Elements {
 				fmt.Printf("%s   [%d]:\n", offset, i)
 				el.PrintWithDepth(depth + 2)
 			}
@@ -116,18 +122,28 @@ func (n *Node) PrintWithDepth(depth int) {
 			fmt.Println(" -> function:")
 
 			fmt.Printf("%s   return:\n", offset)
-			i.ReturnType.PrintWithDepth(depth + 2)
+			info.ReturnType.PrintWithDepth(depth + 2)
 
 			fmt.Printf("%s   body:\n", offset)
-			i.Body.PrintWithDepth(depth + 2)
+			info.Body.PrintWithDepth(depth + 2)
 
 			fmt.Printf("%s   args:\n", offset)
-			for i, arg := range i.Args {
+			for i, arg := range info.Args {
 				fmt.Printf("%s      [%d]:\n", offset, i)
 				arg.PrintWithDepth(depth + 3)
 			}
+		case *NodeInfoFunctionCall:
+			fmt.Println(" -> call:")
+
+			fmt.Printf("%s   args:\n", offset)
+			for i, arg := range info.Args {
+				fmt.Printf("%s      [%d]:\n", offset, i)
+				arg.PrintWithDepth(depth + 3)
+			}
+			fmt.Printf("%s   callee:\n", offset)
+			info.Callee.PrintWithDepth(depth + 2)
 		default:
-			fmt.Printf(" -> einfo: %v\n", i)
+			fmt.Printf(" -> einfo: %v\n", info)
 		}
 	} else {
 		fmt.Println()
