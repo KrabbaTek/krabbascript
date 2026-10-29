@@ -267,7 +267,7 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 			}
 		}
 
-		left, perr := p.parseAnonymousFunction(s)
+		left, perr := p.parseAnonymousFunctionToks(s)
 		if perr != nil {
 			return nil, perr
 		}
@@ -1890,7 +1890,7 @@ func (p *Parser) parseReturnToks(s *TokenStream) (*Node, *ParserError) {
 	return &ret, nil
 }
 
-func (p *Parser) parseAnonymousFunction(s *TokenStream) (*Node, *ParserError) {
+func (p *Parser) parseAnonymousFunctionToks(s *TokenStream) (*Node, *ParserError) {
 	start := p.consumeToks(s)
 
 	// Anonymous functions can look like:
@@ -2014,6 +2014,34 @@ func (p *Parser) parseAnonymousFunction(s *TokenStream) (*Node, *ParserError) {
 		fn.ExtraInfo = &fnInfo
 		return &fn, nil
 	}
+}
+
+func (p *Parser) parseLaterToks(s *TokenStream) (*Node, *ParserError) {
+	start := p.consumeToks(s)
+
+	if p.currentToks(s).Type == lexer.TokenOpenBrack {
+		return nil, &ParserError{
+			What: fmt.Errorf("%s:%d:%d: scopes in later are not allowed", p.file, start.Line, start.Column),
+			Fix:  "later only accepts an expression (later Std.print(\"test!\"))",
+		}
+	}
+
+	expr, err := p.parseExpressionWithMinBpToks(s, 0, false, false)
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.skipToks(s, lexer.TokenSemi)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Node{
+		line:   start.Line,
+		column: start.Column,
+		Type:   NodeLater,
+		Right:  expr,
+	}, nil
 }
 
 func (p *Parser) appendToBlock(block *Node, node *Node) {
@@ -2162,6 +2190,14 @@ loop:
 			}
 		case lexer.TokenReturn:
 			n, err := p.parseReturnToks(s)
+			if err != nil {
+				p.errors = append(p.errors, *err)
+				p.sync(s)
+			} else {
+				p.appendToBlock(ast, n)
+			}
+		case lexer.TokenLater:
+			n, err := p.parseLaterToks(s)
 			if err != nil {
 				p.errors = append(p.errors, *err)
 				p.sync(s)

@@ -24,6 +24,7 @@ const (
 	TokenWhen
 	TokenStruct
 	TokenImport
+	TokenLater
 
 	// Types
 	TokenBool
@@ -129,6 +130,7 @@ func (tt TokenType) String() string {
 		TokenStruct: "struct",
 		TokenImport: "import",
 		TokenDo:     "do",
+		TokenLater:  "later",
 
 		// Types
 		TokenBool: "Bool",
