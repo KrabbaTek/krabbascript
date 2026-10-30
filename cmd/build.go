@@ -6,6 +6,7 @@ import (
 
 	"github.com/KrabbaTek/krabbascript/internal/lexer"
 	"github.com/KrabbaTek/krabbascript/internal/parser"
+	"github.com/KrabbaTek/krabbascript/internal/resolver"
 	"github.com/KrabbaTek/krabbascript/tools"
 
 	"github.com/fatih/color"
@@ -61,8 +62,26 @@ var buildCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		ast.Print()
+		res := resolver.NewResolver(dir)
+		symTable, rerrors := res.Walk(ast)
 
+		for _, htable := range symTable {
+			for v, k := range htable {
+				k.Print(v)
+			}
+		}
+
+		for _, err := range rerrors {
+			fmt.Printf("kscript: %s: %v\n", color.RedString("error"), err)
+		}
+
+		if len(rerrors) != 0 {
+			color.Set(color.FgRed)
+			fmt.Printf("compilation failed with %d error(s)\n", len(rerrors))
+			color.Unset()
+
+			os.Exit(1)
+		}
 		return nil
 	},
 }

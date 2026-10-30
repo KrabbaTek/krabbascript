@@ -77,7 +77,7 @@ type Node struct {
 	Type  NodeType
 
 	Lexeme       string
-	line, column int
+	Line, Column int
 
 	ExtraInfo any
 }
