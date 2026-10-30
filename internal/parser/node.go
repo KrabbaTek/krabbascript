@@ -49,6 +49,7 @@ const (
 	NodeLit          // lit
 	NodeStrLit       // str lit
 	NodeArray        // array
+	NodePointer      // pointer
 	NodeIndex        // index
 	NodeFunctionCall // function call
 

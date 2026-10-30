@@ -686,6 +686,18 @@ func (p *Parser) convertType(s *TokenStream) (*Node, error) {
 		}
 
 		n.Left = elementType
+	case lexer.TokenMul:
+		// This is a pointer then. Example:
+		// *I32
+		n.Type = NodePointer
+		p.consumeToks(s)
+
+		elementType, cerr := p.convertType(s)
+		if cerr != nil {
+			return nil, cerr
+		}
+
+		n.Left = elementType
 	default:
 		return nil, fmt.Errorf("%s:%d:%d: expected a type, got %s", p.file, typ.Line, typ.Column, typ.Type)
 	}
