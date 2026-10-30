@@ -14,8 +14,7 @@ type TokenStream struct {
 }
 
 type Parser struct {
-	line, column int
-	file         string
+	file string
 
 	toks TokenStream
 
@@ -63,9 +62,7 @@ func newBindings() map[lexer.TokenType]Binding {
 
 func NewParser(toks []lexer.Token, file string) Parser {
 	return Parser{
-		line:   1,
-		column: 1,
-		file:   file,
+		file: file,
 
 		toks: TokenStream{
 			pos:  0,
@@ -130,8 +127,8 @@ func (p *Parser) parseListInit(s *TokenStream) (*Node, *ParserError) {
 	}
 
 	left := &Node{
-		line:      start.Line,
-		column:    start.Column,
+		Line:      start.Line,
+		Column:    start.Column,
 		Type:      NodeListInit,
 		ExtraInfo: &NodeInfoBlock{},
 	}
@@ -276,8 +273,8 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 		return left, nil
 	} else if current.Type == lexer.TokenPlus {
 		left = &Node{
-			line:   current.Line,
-			column: current.Column,
+			Line:   current.Line,
+			Column: current.Column,
 			Type:   NodeUnary,
 			Lexeme: "+",
 		}
@@ -293,8 +290,8 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 
 	} else if current.Type == lexer.TokenMinus {
 		left = &Node{
-			line:   current.Line,
-			column: current.Column,
+			Line:   current.Line,
+			Column: current.Column,
 			Type:   NodeUnary,
 			Lexeme: "-",
 		}
@@ -310,8 +307,8 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 
 	} else if current.Type == lexer.TokenNot {
 		left = &Node{
-			line:   current.Line,
-			column: current.Column,
+			Line:   current.Line,
+			Column: current.Column,
 			Type:   NodeUnary,
 			Lexeme: "!",
 		}
@@ -398,8 +395,8 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 		}
 
 		left = &Node{
-			line:   t.Line,
-			column: t.Column,
+			Line:   t.Line,
+			Column: t.Column,
 			Type:   nodeType,
 			Lexeme: t.Value,
 		}
@@ -435,8 +432,8 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 			}
 
 			nodeOp := &Node{
-				line:   op.Line,
-				column: op.Column,
+				Line:   op.Line,
+				Column: op.Column,
 				Type:   NodeUnary,
 				Right:  left,
 
@@ -458,8 +455,8 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 			}
 
 			nodeOp := &Node{
-				line:   op.Line,
-				column: op.Column,
+				Line:   op.Line,
+				Column: op.Column,
 				Type:   NodeIndex,
 				Left:   left,
 				Right:  index,
@@ -472,8 +469,8 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 			start := p.consumeToks(s)
 
 			fn := Node{
-				line:   left.line,
-				column: left.column,
+				Line:   left.Line,
+				Column: left.Column,
 				Type:   NodeFunctionCall,
 			}
 
@@ -554,8 +551,8 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 			p.consumeToks(s)
 
 			fn := Node{
-				line:   left.line,
-				column: left.column,
+				Line:   left.Line,
+				Column: left.Column,
 				Type:   NodeFunctionCall,
 			}
 
@@ -569,8 +566,8 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 		default:
 			p.consumeToks(s)
 			nodeOp := &Node{
-				line:   op.Line,
-				column: op.Column,
+				Line:   op.Line,
+				Column: op.Column,
 				Type:   NodeBinOp,
 
 				Lexeme: op.Type.String(),
@@ -605,8 +602,8 @@ func (p *Parser) convertType(s *TokenStream) (*Node, error) {
 	typ := p.currentToks(s)
 
 	n := &Node{
-		line:   typ.Line,
-		column: typ.Column,
+		Line:   typ.Line,
+		Column: typ.Column,
 	}
 
 	// Assign a type
@@ -699,7 +696,7 @@ func (p *Parser) convertType(s *TokenStream) (*Node, error) {
 func (p *Parser) parseVarToks(s *TokenStream) (*Node, *ParserError) {
 	var node *Node
 
-	start := p.consumeToks(s) // Will use this for the line, col fields
+	start := p.consumeToks(s) // Will use this for the Line, Col fields
 	err := p.expectToks(s, lexer.TokenLiteral)
 	if err != nil {
 		c := p.currentToks(s)
@@ -744,8 +741,8 @@ func (p *Parser) parseVarToks(s *TokenStream) (*Node, *ParserError) {
 			p.consumeToks(s) // Skip the semicolon
 
 			node = &Node{
-				line:   start.Line,
-				column: start.Column,
+				Line:   start.Line,
+				Column: start.Column,
 				Type:   NodeVariableDec,
 				Lexeme: name.Value,
 				Left:   nType,
@@ -766,8 +763,8 @@ func (p *Parser) parseVarToks(s *TokenStream) (*Node, *ParserError) {
 			}
 
 			node = &Node{
-				line:   start.Line,
-				column: start.Column,
+				Line:   start.Line,
+				Column: start.Column,
 				Type:   NodeVariableDef,
 				Lexeme: name.Value,
 				Left:   nType,
@@ -787,8 +784,8 @@ func (p *Parser) parseVarToks(s *TokenStream) (*Node, *ParserError) {
 		}
 
 		node = &Node{
-			line:   start.Line,
-			column: start.Column,
+			Line:   start.Line,
+			Column: start.Column,
 			Type:   NodeVariableDef,
 			Lexeme: name.Value,
 			Right:  expr,
@@ -803,7 +800,7 @@ exit:
 func (p *Parser) parseValToks(s *TokenStream) (*Node, *ParserError) {
 	var node *Node
 
-	start := p.consumeToks(s) // Will use this for the line, col fields
+	start := p.consumeToks(s) // Will use this for the Line, Col fields
 	err := p.expectToks(s, lexer.TokenLiteral)
 	if err != nil {
 		c := p.currentToks(s)
@@ -853,8 +850,8 @@ func (p *Parser) parseValToks(s *TokenStream) (*Node, *ParserError) {
 		}
 
 		node = &Node{
-			line:   start.Line,
-			column: start.Column,
+			Line:   start.Line,
+			Column: start.Column,
 			Type:   NodeValueDef,
 			Lexeme: name.Value,
 			Left:   nType,
@@ -873,8 +870,8 @@ func (p *Parser) parseValToks(s *TokenStream) (*Node, *ParserError) {
 		}
 
 		node = &Node{
-			line:   start.Line,
-			column: start.Column,
+			Line:   start.Line,
+			Column: start.Column,
 			Type:   NodeValueDef,
 			Lexeme: name.Value,
 			Right:  expr,
@@ -969,8 +966,8 @@ func (p *Parser) parseStructFieldToks(s *TokenStream) (*Node, *ParserError) {
 	}
 
 	n := Node{
-		line:   name.Line,
-		column: name.Column,
+		Line:   name.Line,
+		Column: name.Column,
 
 		Type:   NodeFieldDec,
 		Lexeme: name.Value,
@@ -1045,7 +1042,7 @@ func (p *Parser) parseStructScopeToks(s *TokenStream) (*Node, *ParserError) {
 }
 
 func (p *Parser) parseStructToks(s *TokenStream) (*Node, *ParserError) {
-	start := p.consumeToks(s) // Save this for line, col fields
+	start := p.consumeToks(s) // Save this for Line, Col fields
 
 	err := p.expectToks(s, lexer.TokenLiteral)
 	if err != nil {
@@ -1063,8 +1060,8 @@ func (p *Parser) parseStructToks(s *TokenStream) (*Node, *ParserError) {
 		return nil, nil
 	}
 
-	n.line = start.Line
-	n.column = start.Column
+	n.Line = start.Line
+	n.Column = start.Column
 
 	n.Lexeme = name.Value
 
@@ -1204,7 +1201,7 @@ func (p *Parser) parseConditionToks(s *TokenStream, kw lexer.Token) (*Node, *Par
 }
 
 func (p *Parser) parseIfToks(s *TokenStream) (*Node, *ParserError) {
-	start := p.consumeToks(s) // Will use this for the line, col fields
+	start := p.consumeToks(s) // Will use this for the Line, Col fields
 
 	expr, err := p.parseConditionToks(s, start)
 	if err != nil {
@@ -1217,8 +1214,8 @@ func (p *Parser) parseIfToks(s *TokenStream) (*Node, *ParserError) {
 	}
 
 	node := &Node{
-		line:      start.Line,
-		column:    start.Column,
+		Line:      start.Line,
+		Column:    start.Column,
 		Type:      NodeIfStatement,
 		ExtraInfo: &NodeInfoBlock{},
 		Left:      expr,
@@ -1245,8 +1242,8 @@ func (p *Parser) parseElsifToks(s *TokenStream) (*Node, *ParserError) {
 	}
 
 	node := &Node{
-		line:      start.Line,
-		column:    start.Column,
+		Line:      start.Line,
+		Column:    start.Column,
 		Type:      NodeElsifStatement,
 		ExtraInfo: &NodeInfoBlock{},
 		Left:      expr,
@@ -1268,8 +1265,8 @@ func (p *Parser) parseElseToks(s *TokenStream) (*Node, *ParserError) {
 	}
 
 	node := &Node{
-		line:      start.Line,
-		column:    start.Column,
+		Line:      start.Line,
+		Column:    start.Column,
 		Type:      NodeElseStatement,
 		ExtraInfo: &NodeInfoBlock{},
 	}
@@ -1292,8 +1289,8 @@ func (p *Parser) parseImportModulePathToks(s *TokenStream) (*Node, *ParserError)
 	}
 
 	path := Node{
-		line:   start.Line,
-		column: start.Column,
+		Line:   start.Line,
+		Column: start.Column,
 		Type:   NodeModulePath,
 
 		ExtraInfo: &NodeInfoBlock{}, // This will hold the module path
@@ -1380,13 +1377,13 @@ func (p *Parser) parseImportToks(s *TokenStream) (*Node, *ParserError) {
 	}
 
 	node := Node{
-		line:   start.Line,
-		column: start.Column,
+		Line:   start.Line,
+		Column: start.Column,
 
 		Type: NodeImportStatement,
 	}
 
-	// Add an EOF by getting the last element and using it as the line and column for the EOF token
+	// Add an EOF by getting the last element and using it as the Line and Col for the EOF token
 	last := toks[len(toks)-1]
 	toks = append(toks, lexer.Token{
 		Line:   last.Line,
@@ -1426,8 +1423,8 @@ func (p *Parser) parseWhenArm(s *TokenStream) (*Node, *ParserError) {
 
 	start := p.currentToks(s)
 	arm := Node{
-		line:   start.Line,
-		column: start.Column,
+		Line:   start.Line,
+		Column: start.Column,
 		Type:   NodeWhenArm,
 	}
 
@@ -1454,8 +1451,8 @@ func (p *Parser) parseWhenArm(s *TokenStream) (*Node, *ParserError) {
 		}
 
 		return &Node{
-			line:   start.Line,
-			column: start.Column,
+			Line:   start.Line,
+			Column: start.Column,
 			Type:   NodeWhenElseArm,
 			Right:  body,
 		}, nil
@@ -1464,8 +1461,8 @@ func (p *Parser) parseWhenArm(s *TokenStream) (*Node, *ParserError) {
 	p.consumeToks(s)
 
 	arm.Left = &Node{
-		line:   start.Line,
-		column: start.Column,
+		Line:   start.Line,
+		Column: start.Column,
 		Type:   NodeBinOp,
 		Lexeme: start.Type.String(),
 	}
@@ -1577,8 +1574,8 @@ func (p *Parser) parseWhenToks(s *TokenStream) (*Node, *ParserError) {
 	start := p.consumeToks(s)
 
 	node := Node{
-		line:      start.Line,
-		column:    start.Column,
+		Line:      start.Line,
+		Column:    start.Column,
 		Type:      NodeWhenStatement,
 		ExtraInfo: &NodeInfoBlock{},
 	}
@@ -1594,8 +1591,8 @@ func (p *Parser) parseWhenToks(s *TokenStream) (*Node, *ParserError) {
 
 	lit := p.consumeToks(s)
 	node.Right = &Node{
-		line:   lit.Line,
-		column: lit.Column,
+		Line:   lit.Line,
+		Column: lit.Column,
 		Type:   NodeLit,
 		Lexeme: lit.Value,
 	}
@@ -1633,7 +1630,7 @@ func (p *Parser) parseWhenToks(s *TokenStream) (*Node, *ParserError) {
 
 	p.consumeToks(s) // Cnsume the closing brack
 
-	// Append an EOF by getting the last element to use it as the line and column
+	// Append an EOF by getting the last element to use it as the Line and Col
 	if len(toks) == 0 {
 		// No EOF, use the startScope var
 		toks = append(toks, lexer.Token{
@@ -1682,14 +1679,14 @@ func (p *Parser) parseFunctionArgToks(s *TokenStream) (*Node, *ParserError) {
 
 	name := p.consumeToks(s)
 	arg := Node{
-		line:   name.Line,
-		column: name.Column,
+		Line:   name.Line,
+		Column: name.Column,
 		Type:   NodeFunctionArg,
 
 		// Arg name
 		Left: &Node{
-			line:   name.Line,
-			column: name.Column,
+			Line:   name.Line,
+			Column: name.Column,
 			Type:   NodeLit,
 			Lexeme: name.Value,
 		},
@@ -1798,8 +1795,8 @@ func (p *Parser) parseFunctionToks(s *TokenStream) (*Node, *ParserError) {
 
 	// Create the function node
 	fn := Node{
-		line:   start.Line,
-		column: start.Column,
+		Line:   start.Line,
+		Column: start.Column,
 		Type:   NodeFunction,
 		Lexeme: name.Value,
 	}
@@ -1891,8 +1888,8 @@ func (p *Parser) parseReturnToks(s *TokenStream) (*Node, *ParserError) {
 	}
 
 	ret := Node{
-		line:   start.Line,
-		column: start.Column,
+		Line:   start.Line,
+		Column: start.Column,
 		Type:   NodeReturn,
 		Right:  expr,
 	}
@@ -1920,8 +1917,8 @@ func (p *Parser) parseAnonymousFunctionToks(s *TokenStream) (*Node, *ParserError
 	// }
 	// val ret = my_func("Krabba!");
 	fn := Node{
-		line:   start.Line,
-		column: start.Column,
+		Line:   start.Line,
+		Column: start.Column,
 		Type:   NodeAnonymousFunction,
 	}
 
@@ -2047,8 +2044,8 @@ func (p *Parser) parseLaterToks(s *TokenStream) (*Node, *ParserError) {
 	}
 
 	return &Node{
-		line:   start.Line,
-		column: start.Column,
+		Line:   start.Line,
+		Column: start.Column,
 		Type:   NodeLater,
 		Right:  expr,
 	}, nil
@@ -2063,8 +2060,8 @@ func (p *Parser) parseSicToks(s *TokenStream) (*Node, *ParserError) {
 	}
 
 	return &Node{
-		line:   start.Line,
-		column: start.Column,
+		Line:   start.Line,
+		Column: start.Column,
 		Type:   NodeSic,
 		Right:  scope,
 	}, nil
@@ -2086,8 +2083,8 @@ func (p *Parser) parseModuleToks(s *TokenStream) (*Node, *ParserError) {
 	}
 
 	return &Node{
-		line:   start.Line,
-		column: start.Column,
+		Line:   start.Line,
+		Column: start.Column,
 		Type:   NodeModule,
 		Right:  scope,
 		Lexeme: name.Value,
