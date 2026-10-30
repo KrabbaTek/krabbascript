@@ -2073,6 +2073,13 @@ func (p *Parser) parseSicToks(s *TokenStream) (*Node, *ParserError) {
 func (p *Parser) parseModuleToks(s *TokenStream) (*Node, *ParserError) {
 	start := p.consumeToks(s)
 
+	err := p.expectToks(s, lexer.TokenLiteral)
+	if err != nil {
+		return nil, err
+	}
+
+	name := p.consumeToks(s)
+
 	scope, err := p.parseScopeToks(s)
 	if err != nil {
 		return nil, err
@@ -2083,6 +2090,7 @@ func (p *Parser) parseModuleToks(s *TokenStream) (*Node, *ParserError) {
 		column: start.Column,
 		Type:   NodeModule,
 		Right:  scope,
+		Lexeme: name.Value,
 	}, nil
 }
 
