@@ -217,6 +217,8 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 		lexer.TokenPlus,
 		lexer.TokenMinus,
 		lexer.TokenNot,
+		lexer.TokenMul,
+		lexer.TokenBand,
 		lexer.TokenNull,
 	)
 	var left *Node
@@ -322,6 +324,38 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 
 		left.Right = expr
 
+	} else if current.Type == lexer.TokenMul {
+		left = &Node{
+			Line:   current.Line,
+			Column: current.Column,
+			Type:   NodeUnary,
+			Lexeme: "*",
+		}
+
+		p.consumeToks(s)
+
+		expr, err := p.parseExpressionWithMinBpToks(s, int(PrecedenceUnary), allowListInits, allowAnonymousFuncs)
+		if err != nil {
+			return nil, err
+		}
+
+		left.Right = expr
+	} else if current.Type == lexer.TokenBand {
+		left = &Node{
+			Line:   current.Line,
+			Column: current.Column,
+			Type:   NodeUnary,
+			Lexeme: "&",
+		}
+
+		p.consumeToks(s)
+
+		expr, err := p.parseExpressionWithMinBpToks(s, int(PrecedenceUnary), allowListInits, allowAnonymousFuncs)
+		if err != nil {
+			return nil, err
+		}
+
+		left.Right = expr
 	} else if p.isCurrentBuiltInTypeToks(s) ||
 		(current.Type == lexer.TokenLiteral &&
 			p.peekToks(s).Type == lexer.TokenOpenBrack) {
