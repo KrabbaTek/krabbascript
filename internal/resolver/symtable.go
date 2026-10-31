@@ -13,6 +13,8 @@ const (
 	SymTableVariableDef SymTableEntryType = iota // variable def
 	SymTableVariableDec                          // variable dec
 	SymTableValueDef                             // value def
+
+	SymTableImport // import
 )
 
 type SymTableEntry struct {

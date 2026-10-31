@@ -27,13 +27,13 @@ As with most statically typed and compiled languages, Krabbascript enforces semi
 
 Krabbascript has two options for variables. You can have variables, or, you can have values. What's the difference? Variables are mutable -- they can be mutated and reassigned -- values are not. You can declare a variable or value using `var` or `val` respectively, the name of the variable, and then a type. Here's an example:
 
-```
+```kscript
 var butterfly: I32 = 1704;
 ```
 
 If you wanted to create a value, it would be the same approach but with `val`:
 
-```
+```kscript
 val butterfly: I32 = 96;
 ```
 
@@ -50,7 +50,7 @@ Krabbascript has a solid arrangement of control structures for you. We have if-e
 
 #### if-elsif-else blocks
 
-```
+```kscript
 if breakfast {
   drinkFrenchPressCoffeeScript();
 } elsif lunch {
@@ -62,7 +62,7 @@ if breakfast {
 
 #### while loops (TODO)
 
-```
+```kscript
 while railsIsUnpopular {
   rantAboutWhyRailsIsGreat();
 }
@@ -72,7 +72,7 @@ while railsIsUnpopular {
 
 In these, you loop now and declare a condition later.
 
-```
+```kscript
 repeat {
   rantAboutWhyRailsIsGreat();
 } until railsIsTrending;
@@ -82,7 +82,7 @@ repeat {
 
 This is one of the more unique parts of Krabbascript. This is like a switch in nature, but with a slightly different approach.
 
-```
+```kscript
 when language {
   == "Elixir" do celebrate();
   == "Haskell" do complain();
@@ -93,7 +93,7 @@ when language {
 
 Krabbascript's for loops are closer to foreach loops, and the design was heavily inspired by Lua.
 
-```
+```kscript
 for index, language in languages {
     when language {
     == "Elixir" {
@@ -109,7 +109,7 @@ for index, language in languages {
 
 If you don't want that pesky index variable, feel free to use an underscore in its place. Like:
 
-```
+```kscript
 for _, variable in arrays
 ```
 
@@ -135,7 +135,7 @@ Krabbascript provides 13 types. Remember that all types are capitalized like nou
 
 You can define a struct like this:
 
-```
+```kscript
 struct User {
 	name: Str,
 	birth: U64
@@ -146,13 +146,13 @@ All struct names must be capitalized; if you were to name a struct something lik
 
 To access a struct's property, use dot notation. For example:
 
-```
+```kscript
 User.name
 ```
 
 Here's how you can make an instance of a struct:
 
-```
+```kscript
 val my_user: User = User{
       name  = “Joe Doe”,
       birth = 1704
@@ -163,7 +163,7 @@ val my_user: User = User{
 
 Functions must be declared with a return type. You declare a function like this:
 
-```
+```kscript
 func giveMeACity() -> Str {
   return "Tampere";
 }
@@ -173,7 +173,7 @@ If you wish to return void, you don't have to type out `-> void` -- that would b
 
 You can call a function like in any other language:
 
-```
+```kscript
 giveMeACity();
 ```
 
@@ -181,7 +181,7 @@ giveMeACity();
 
 Comments are quite simple. They use a single hashtag: `#`. There are no multi-line comments so far.
 
-```
+```kscript
 # Finland gained independence from Russia in 1917.
 ```
 
@@ -189,7 +189,7 @@ Comments are quite simple. They use a single hashtag: `#`. There are no multi-li
 
 Like structs, module names must be capitalized. You can have multiple modules in a file. They are declared like this:
 
-```
+```kscript
 mod Shapes {
 	struct Rectangle {
 	  x: I32;
@@ -208,7 +208,7 @@ mod Shapes {
 
 This is how you import a module:
 
-```
+```kscript
 import Shapes;
 ```
 
