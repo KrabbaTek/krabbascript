@@ -16,6 +16,8 @@ The following examples are disallowed:
 
 Pull requests that meet these criteria will be closed.
 
+Using AI to review/proofread and hunt bugs is permitted.
+
 ## Setting up the development environment
 To build and contribute to KrabbaScript, you'll need the following programs installed:
 
@@ -46,34 +48,35 @@ First, there are two levels of contributions: bugs, and ideas.
 
 ### Bugs
 
-If you went digging through the codebase and found something that shouldn't be, or found something that should be then
+If you went digging through the codebase and found something that shouldn't be, or found something that should be, then
 by all means submit a pull request! If any mistakes were made, like we were already working on it or it has been fixed, then we'll let you know.
 
 Here's a walkthrough on submitting a pull request for a bug specifically:
 
-First, tell us about the bug, unless it's extremely obvious. Give a description like what triggers it, when, why, etc.
+First, tell us about the bug, unless it's extremely obvious. Give a description including what triggers it, when, why, etc.
 
 Secondly, tell us what you did to fix it.
 If the bug is quite structural — that is,
 that the bug occurs due to something architectural and not just something like a typo — then submit an issue instead of a pull request.
+Please don't go changing something structural and then submitting a pull request.
 
 In addition to this, be sure to follow the requirements listed below in the workflow section.
 
 Finally, before submitting, make sure your code aligns with the style guide for KrabbaScript. 
-If so, go ahead and submit and we'll review it as soon as we can.
+If it does, then go ahead and submit and we'll review it as soon as we can.
 
 ### Ideas
 
 Ideas are always welcome — it's what makes open source special — but don't get ahead of yourself and submit a pull request for a new feature or idea.
 
-For example, if you want to add a keyword, don't write the logic in the parser then submit a PR, 
+For example, if you want to add a keyword, don't make additions lexer/parser then submit a PR, 
 because you might waste your time if we don't accept the feature.
 
 Instead, submit an issue explaining what the idea is, why you think it's a good fit, and how you came up with it.
 
 If we like the idea, we'll either implement it ourselves or ask you to do so.
 
-The decision isn't polar though — it's not always an absolute yes or no — we may like part of the idea, but request some changes.
+The decision isn't always polar though — it's not always an absolute yes or no — we may like part of the idea, but request some changes.
 
 ### Pick an issue or suggest a feature
 Pick an issue at the [GitHub issues tab](https://github.com/KrabbaTek/krabbascript/issues). I recommend you search for these tags if you are a beginner:
