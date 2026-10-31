@@ -16,6 +16,8 @@ The following examples are disallowed:
 
 Pull requests that meet these criteria will be closed.
 
+Using AI to review/proofread and hunt bugs is permitted.
+
 ## Setting up the development environment
 To build and contribute to KrabbaScript, you'll need the following programs installed:
 
