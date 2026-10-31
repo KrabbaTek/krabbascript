@@ -60,7 +60,7 @@ if breakfast {
 }
 ```
 
-#### while loops
+#### while loops (TODO)
 
 ```
 while railsIsUnpopular {
@@ -68,7 +68,7 @@ while railsIsUnpopular {
 }
 ```
 
-#### repeat loops
+#### repeat loops (TODO)
 
 In these, you loop now and declare a condition later.
 
@@ -89,7 +89,7 @@ when language {
 }
 ```
 
-#### for loops
+#### for loops (TODO)
 
 Krabbascript's for loops are closer to foreach loops, and the design was heavily inspired by Lua.
 
@@ -192,15 +192,15 @@ Like structs, module names must be capitalized. You can have multiple modules in
 ```
 mod Shapes {
 	struct Rectangle {
-	x: I32;
-	y: I32;
-	w: I32;
-	h: I32;
-  	}
+	  x: I32;
+	  y: I32;
+	  w: I32;
+	  h: I32;
+  }
 
 	func rect_area(rect: Rectangle) -> I32 {
 		return rect.w * rect.h;
-  	}
+  }
 }
 ```
 
@@ -209,7 +209,7 @@ mod Shapes {
 This is how you import a module:
 
 ```
-import "Shapes";
+import Shapes;
 ```
 
 ## Conclusion

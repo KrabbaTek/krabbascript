@@ -62,6 +62,11 @@ func (r *Resolver) resolveVariableDef(variable *parser.Node) *ResolverError {
 		}
 	}
 
+	err := r.resolveExpression(variable.Right)
+	if err != nil {
+		return err
+	}
+
 	currentScope[variable.Lexeme] = &SymTableEntry{
 		Kind: SymTableVariableDef,
 		Type: variable.Left,
@@ -81,6 +86,11 @@ func (r *Resolver) resolveVariableDec(variable *parser.Node) *ResolverError {
 			What: fmt.Errorf("%s:%d:%d: redeclaration of %s at %s:%d:%d", r.file, variable.Line, variable.Column, variable.Lexeme,
 				r.file, entry.Ref.Line, entry.Ref.Line),
 		}
+	}
+
+	err := r.resolveExpression(variable.Right)
+	if err != nil {
+		return err
 	}
 
 	currentScope[variable.Lexeme] = &SymTableEntry{
@@ -104,10 +114,83 @@ func (r *Resolver) resolveValueDef(value *parser.Node) *ResolverError {
 		}
 	}
 
+	err := r.resolveExpression(value.Right)
+	if err != nil {
+		return err
+	}
+
 	currentScope[value.Lexeme] = &SymTableEntry{
 		Kind: SymTableValueDef,
 		Type: value.Left,
 		Ref:  value,
+	}
+
+	return nil
+}
+
+func (r *Resolver) resolveExpression(expr *parser.Node) *ResolverError {
+	if expr == nil {
+		return nil
+	}
+
+	switch expr.Type {
+	case parser.NodeBinOp:
+		if expr.Lexeme == "." {
+			// Only check if left exists
+			err := r.resolveExpression(expr.Left)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Check both left and right
+			err := r.resolveExpression(expr.Left)
+			if err != nil {
+				return err
+			}
+
+			// Only check if left exists
+			err = r.resolveExpression(expr.Right)
+			if err != nil {
+				return err
+			}
+		}
+
+	case parser.NodeLit:
+		// Look up if it exists
+		_, ok := r.lookUp(expr.Lexeme)
+		if !ok {
+			return &ResolverError{
+				What: fmt.Errorf("%s:%d:%d: undeclared literal '%s'", r.file,
+					expr.Line, expr.Column, expr.Lexeme),
+			}
+		}
+	case parser.NodeFunctionCall:
+		// Get the NodeInfoFunctionCall field
+		info, ok := expr.ExtraInfo.(*parser.NodeInfoFunctionCall)
+		if !ok {
+			return &ResolverError{
+				What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of expression to be a function call", r.file,
+					expr.Line, expr.Column),
+				Fix: "this is a programming error",
+			}
+		}
+
+		// Look up if the function exists
+		err := r.resolveExpression(info.Callee)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Resolve left and right
+	err := r.resolveExpression(expr.Left)
+	if err != nil {
+		return err
+	}
+
+	err = r.resolveExpression(expr.Right)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -153,10 +236,15 @@ func (r *Resolver) Walk(ast *parser.Node) ([]map[string]*SymTableEntry, []*Resol
 				r.errors = append(r.errors, err)
 			}
 		default:
-			r.errors = append(r.errors, &ResolverError{
-				What: fmt.Errorf("%s:%d:%d: not supported by the resolver",
-					r.file, el.Line, el.Column),
-			})
+			// r.errors = append(r.errors, &ResolverError{
+			// 	What: fmt.Errorf("%s:%d:%d: not supported by the resolver",
+			// 		r.file, el.Line, el.Column),
+			// })
+
+			err := r.resolveExpression(el)
+			if err != nil {
+				r.errors = append(r.errors, err)
+			}
 		}
 	}
 
