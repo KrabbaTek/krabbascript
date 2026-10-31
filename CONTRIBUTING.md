@@ -1,11 +1,14 @@
 # Contributing To KrabbaScript
+
 Since you're reading this, I want to thank you for considering contributing to KrabbaScript!
 
-> KrabbaScript is a simple yet powerful programming language, taking inspiration from C, Lua and Python. It is compiled, statically typed and type-safe, requiring a type for every variable declaration.
+> KrabbaScript is a simple yet powerful programming language, taking inspiration from C, Lua and Python. 
+> It is compiled, statically typed and type-safe, requiring a type for every variable declaration.
 
 If you haven't done so already, please read the [Code of Conduct](CODE_OF_CONDUCT.md) first before continuing reading this.
 
 ## AI policy
+
 AI generated contributions are strictly forbidden unless you use AI as a tool for purely understanding the codebase.
 The following examples are disallowed:
 
@@ -19,6 +22,7 @@ Pull requests that meet these criteria will be closed.
 Using AI to review/proofread and hunt bugs is permitted.
 
 ## Setting up the development environment
+
 To build and contribute to KrabbaScript, you'll need the following programs installed:
 
 - Golang version 1.27.1
@@ -29,13 +33,22 @@ You can check if you have Golang installed by running:
 
 `go version`
 
+If you have Nix installed with flakes enabled, you can run
+
+```bash
+nix develop
+nix build
+```
+
 Start by cloning the repo
+
 ```bash
 git clone https://github.com/KrabbaTek/krabbascript
 cd krabbascript
 ```
 
 And then build the project
+
 ```bash
 go build
 ```
@@ -49,7 +62,8 @@ First, there are two levels of contributions: bugs, and ideas.
 ### Bugs
 
 If you went digging through the codebase and found something that shouldn't be, or found something that should be, then
-by all means submit a pull request! If any mistakes were made, like we were already working on it or it has been fixed, then we'll let you know.
+by all means submit a pull request! If any mistakes were made, like we were already working on it or it has been fixed,
+then we'll let you know.
 
 Here's a walkthrough on submitting a pull request for a bug specifically:
 
@@ -67,7 +81,8 @@ If it does, then go ahead and submit and we'll review it as soon as we can.
 
 ### Ideas
 
-Ideas are always welcome — it's what makes open source special — but don't get ahead of yourself and submit a pull request for a new feature or idea.
+Ideas are always welcome — it's what makes open source special — but don't get ahead of yourself and submit a pull request 
+for a new feature or idea.
 
 For example, if you want to add a keyword, don't make additions lexer/parser then submit a PR, 
 because you might waste your time if we don't accept the feature.
@@ -79,6 +94,7 @@ If we like the idea, we'll either implement it ourselves or ask you to do so.
 The decision isn't always polar though — it's not always an absolute yes or no — we may like part of the idea, but request some changes.
 
 ### Pick an issue or suggest a feature
+
 Pick an issue at the [GitHub issues tab](https://github.com/KrabbaTek/krabbascript/issues). I recommend you search for these tags if you are a beginner:
 
 - `good first issue`: Perfect for beginners
@@ -89,7 +105,9 @@ Pick an issue at the [GitHub issues tab](https://github.com/KrabbaTek/krabbascri
 If there's a feature you want to add that's not in the issues, open an issue first.
 
 ## Understanding the compiler design
+
 The compiler's pipeline is built as:
+
 ```mermaid
 flowchart LR
 
@@ -99,6 +117,7 @@ Lexer -->|Tokens| Parser -->|AST| Resolver -->|Symbol table| IR["Import Resolver
 Check out [DESIGN.md](DESIGN.md) for more info.
 
 ## Workflow
+
 1. Fork the repo
 2. Create a new branch for your feature/fix with:
    ```bash
@@ -119,4 +138,5 @@ Check out [DESIGN.md](DESIGN.md) for more info.
    Tips: You may also try out the feature or the compiler itself with a `test.ks` file.
 
 ## Want help?
+
 Open a Q&A issue if you need any help!

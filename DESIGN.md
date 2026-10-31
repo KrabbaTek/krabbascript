@@ -8,7 +8,9 @@ Lexer -->|Tokens| Parser -->|AST| Resolver -->|Symbol table| IR["Import Resolver
 _A little pipeline of the compiler_
 
 ## Lexer (AKA Tokenizer)
+
 Lexer's job is to convert the source code into a sequence of tokens. For example the following input:
+
 ```kscript
 import Std;
 
@@ -16,7 +18,9 @@ func main() {
     Std.print("Hello, world!");
 }
 ```
+
 will produce the following tokens:
+
 ```
 import
 literal "Std"
@@ -44,10 +48,12 @@ type Token struct {
 	Value string
 }
 ```
+
 KrabbaScript's token struct carries a line and column, token type and the value.
 The lexer also ignores comments like `# This is a comment`
 
 ## Parser
+
 Parser's job is to generate an [AST](https://en.wikipedia.org/wiki/Abstract_syntax_tree) which is made out of nodes, from the tokens generated from the lexer.
 
 ```go
@@ -62,6 +68,7 @@ type Node struct {
 	ExtraInfo any
 }
 ```
+
 This is how a node is represented in KrabbaScript. It carries a line, column, its left and right, its type, lexeme and any additional info.
 
 ```go
@@ -105,31 +112,37 @@ mindmap
 > The following sections are still WIP and may change
 
 ## Resolver
+
 Resolver's job is to walk the AST and check for redeclarations and undeclared variables, values, etc. It outputs a symbol table. For example, say we write the following:
+
 ```kscript
 var i = 0;
 val i = 5;
 ```
 
 Trying to compile that will give you a redeclaration error:
+
 ```
 kscript: error: test.ks:2:1: redefinition of i at test.ks:1:1
 compilation failed with 1 error(s)
 ```
 
 Now let's try compiling the following:
+
 ```kscript
 var c = a;
 c++;
 ```
 
 The error will be:
+
 ```
 kscript: error: test.ks:1:9: undeclared literal 'a'
 compilation failed with 1 error(s)
 ```
 
 Let's use this code to look at the underlying Symbol Table:
+
 ```kscript
 var days_since_bug: I32 = 0;
 val sentence = "Krabbas are very cool";
@@ -162,8 +175,11 @@ type SymTableEntry struct {
 This is how a Symbol Table entry looks like.
 
 ## Import Resolver
-Import Resolver's job is to find a module specified in the import statement, check it (compile it without producing any binary) and then bring it into scope of the file.
+
+Import Resolver's job is to find a module specified in the import statement, check it
+(compile it without producing any binary) and then bring it into scope of the file.
 Let's use our hello world example to look at how the Import Resolver works:
+
 ```kscript
 import Std;
 
@@ -224,14 +240,20 @@ mindmap
 ```
 
 ## Type Checker
-The Type Checker's job is to, well, type check and make sure that everything has a valid type and that types are used consistently. It verifies that a value assigned to a variable matches the variable’s declared type, that operators are applied to compatible operands, that function calls pass the right number and types of arguments, and that a function’s `return` matches its declared return type. For variables without a type annotation, like `val x = 5;`, it infers the type from the initializer and fills it into the symbol table.
+
+The Type Checker's job is to, well, type check and make sure that everything has a valid type and that types are used consistently.
+It verifies that a value assigned to a variable matches the variable’s declared type, that operators are applied to compatible operands,
+that function calls pass the right number and types of arguments, and that a function’s `return` matches its declared return type.
+For variables without a type annotation, like `val x = 5;`, it infers the type from the initializer and fills it into the symbol table.
 
 For example, passing the following code:
+
 ```kscript
 var sentence: I32 = "Krabbas are very cool";
 ```
 
 Will give you the following error:
+
 ```kscript
 kscript: error: test.ks:1:15: expected `I32`, got `Str`
 compilation failed with 1 error(s)
