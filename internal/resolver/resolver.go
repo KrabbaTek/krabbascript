@@ -128,6 +128,30 @@ func (r *Resolver) resolveValueDef(value *parser.Node) *ResolverError {
 	return nil
 }
 
+func (r *Resolver) resolveImport(modImport *parser.Node) *ResolverError {
+	currentScope := r.getCurrentScope()
+
+	// Get the NodeInfoFunctionCall field
+	info, ok := modImport.Right.ExtraInfo.(*parser.NodeInfoBlock)
+	if !ok {
+		return &ResolverError{
+			What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of expression to be a function call", r.file,
+				modImport.Line, modImport.Column),
+			Fix: "this is a programming error",
+		}
+	}
+
+	module := info.Elements[0]
+
+	currentScope[module.Lexeme] = &SymTableEntry{
+		Kind: SymTableImport,
+		Type: nil,
+		Ref:  modImport,
+	}
+
+	return nil
+}
+
 func (r *Resolver) resolveExpression(expr *parser.Node) *ResolverError {
 	if expr == nil {
 		return nil
@@ -182,17 +206,6 @@ func (r *Resolver) resolveExpression(expr *parser.Node) *ResolverError {
 		}
 	}
 
-	// Resolve left and right
-	err := r.resolveExpression(expr.Left)
-	if err != nil {
-		return err
-	}
-
-	err = r.resolveExpression(expr.Right)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -232,6 +245,12 @@ func (r *Resolver) Walk(ast *parser.Node) ([]map[string]*SymTableEntry, []*Resol
 			}
 		case parser.NodeValueDef:
 			err := r.resolveValueDef(el)
+			if err != nil {
+				r.errors = append(r.errors, err)
+			}
+
+		case parser.NodeImportStatement:
+			err := r.resolveImport(el)
 			if err != nil {
 				r.errors = append(r.errors, err)
 			}
