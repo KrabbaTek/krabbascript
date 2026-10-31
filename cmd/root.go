@@ -9,7 +9,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:     "kscript",
+	Use:     "krabbascript",
 	Short:   "KrabbaScript compiler",
 	Version: version.Version,
 }
