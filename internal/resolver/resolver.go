@@ -37,6 +37,10 @@ func (r *Resolver) getCurrentScope() map[string]*SymTableEntry {
 	return r.symTable[len(r.symTable)-1]
 }
 
+func (r *Resolver) popScope() {
+	r.symTable = r.symTable[:len(r.symTable)-1]
+}
+
 func (r *Resolver) lookUp(lexeme string) (*SymTableEntry, bool) {
 	// Look up if the lexeme exists
 	for i := len(r.symTable) - 1; i >= 0; i-- {
@@ -160,6 +164,22 @@ func (r *Resolver) resolveImport(modImport *parser.Node) *ResolverError {
 	return nil
 }
 
+func (r *Resolver) resolveIfStatement(ifStat *parser.Node) *ResolverError {
+	// Create a new scope for the if statement
+	r.symTable = append(r.symTable, make(map[string]*SymTableEntry))
+	defer r.popScope() // We should pop the scope after so you can't access variables inside a scope
+
+	// Resolve if's conditional which lives on the left
+	err := r.resolveExpression(ifStat.Left)
+	if err != nil {
+		return err
+	}
+
+	r.walkBlock(ifStat)
+
+	return nil
+}
+
 func (r *Resolver) resolveExpression(expr *parser.Node) *ResolverError {
 	if expr == nil {
 		return nil
@@ -242,40 +262,16 @@ func (r *Resolver) resolveWhen(when *parser.Node) *ResolverError {
 				return err
 			}
 
-			// Get arm's right NodeInfoBlock
-			block, ok := arm.Right.ExtraInfo.(*parser.NodeInfoBlock)
-			if !ok {
-				return &ResolverError{
-					What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of when's arm to be a block", r.file,
-						arm.Line, arm.Column),
-					Fix: "this is a programming error",
-				}
-			}
+			r.symTable = append(r.symTable, make(map[string]*SymTableEntry))
+			defer r.popScope()
 
-			for _, el := range block.Elements {
-				err = r.resolveExpression(el)
-				if err != nil {
-					return err
-				}
-			}
+			r.walkBlock(arm.Right)
 		} else {
 			// It's an else arm, no need to resolve the conditional
-			// Get arm's right NodeInfoBlock
-			block, ok := arm.Right.ExtraInfo.(*parser.NodeInfoBlock)
-			if !ok {
-				return &ResolverError{
-					What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of when's arm to be a block", r.file,
-						arm.Line, arm.Column),
-					Fix: "this is a programming error",
-				}
-			}
+			r.symTable = append(r.symTable, make(map[string]*SymTableEntry))
+			defer r.popScope()
 
-			for _, el := range block.Elements {
-				err = r.resolveExpression(el)
-				if err != nil {
-					return err
-				}
-			}
+			r.walkBlock(arm.Right)
 		}
 	}
 
@@ -295,13 +291,20 @@ func (r *Resolver) Walk(ast *parser.Node) ([]map[string]*SymTableEntry, []*Resol
 
 	// Create a global scope which will always exist
 	r.symTable = append(r.symTable, make(map[string]*SymTableEntry))
+	r.walkBlock(ast)
 
-	v, ok := ast.ExtraInfo.(*parser.NodeInfoBlock)
+	return r.symTable, r.errors
+}
+
+func (r *Resolver) walkBlock(block *parser.Node) {
+	v, ok := block.ExtraInfo.(*parser.NodeInfoBlock)
 	if !ok {
 		r.errors = append(r.errors, &ResolverError{
-			What: fmt.Errorf("the root of the AST must have it's ExtraInfo as a *NodeInfoBlock"),
-			Fix:  "this is a programming error",
+			What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of block to be a block", r.file,
+				block.Line, block.Column),
+			Fix: "this is a programming error",
 		})
+		return
 	}
 
 	for _, el := range v.Elements {
@@ -333,6 +336,14 @@ func (r *Resolver) Walk(ast *parser.Node) ([]map[string]*SymTableEntry, []*Resol
 			if err != nil {
 				r.errors = append(r.errors, err)
 			}
+
+		case parser.NodeIfStatement:
+			err := r.resolveIfStatement(el)
+			if err != nil {
+				r.errors = append(r.errors, err)
+			}
+		case parser.NodeScope:
+			r.walkBlock(el)
 		default:
 			// r.errors = append(r.errors, &ResolverError{
 			// 	What: fmt.Errorf("%s:%d:%d: not supported by the resolver",
@@ -346,6 +357,5 @@ func (r *Resolver) Walk(ast *parser.Node) ([]map[string]*SymTableEntry, []*Resol
 		}
 	}
 
-	ast.Print()
-	return r.symTable, r.errors
+	block.Print()
 }
