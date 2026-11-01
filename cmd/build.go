@@ -117,11 +117,11 @@ var buildCmd = &cobra.Command{
 		tc := typechecker.New(dir)
 		terrs := tc.Check(ast)
 		for _, err := range terrs {
-			fmt.Printf("kscript: %s: %v\n", color.RedString("failure"), err)
+			fmt.Printf("kscript: %s: %v\n", color.RedString("error"), err)
 		}
 		if len(terrs) != 0 {
 			color.Set(color.FgRed)
-			fmt.Printf("kscript: build halted at compilation stage (%d error(s))\n", len(terrs))
+			fmt.Printf("kscript: compilation failed with %d error(s)\n", len(terrs))
 			color.Unset()
 
 			os.Exit(1)
