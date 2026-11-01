@@ -80,11 +80,11 @@ func (tc *TypeChecker) Check(ast *parser.Node) []error {
 }
 
 func funcType(info *parser.NodeInfoFunction) *Type {
-	ret := &Type{Kind: KVoid}
+	ret := &Type{Kind: parser.NodeVoidType}
 	if info.ReturnType != nil {
 		ret = fromTypeNode(info.ReturnType)
 	}
-	ft := &Type{Kind: KFunc, Elem: ret}
+	ft := &Type{Kind: parser.NodeFunction, Elem: ret}
 	for _, a := range info.Args {
 		if a == nil {
 			ft.Params = append(ft.Params, unk())
@@ -186,7 +186,7 @@ func (tc *TypeChecker) checkReturn(n *parser.Node) {
 
 	want := tc.returns[len(tc.returns)-1]
 	switch {
-	case want.Kind == KVoid:
+	case want.Kind == parser.NodeVoidType:
 		tc.errorf(n, "void function cannot return a value")
 	case !assignable(want, got):
 		tc.errorf(expr, "expected `%s`, got `%s`", want, got)
@@ -220,10 +220,10 @@ func (tc *TypeChecker) checkDecl(decl *parser.Node) {
 
 func (tc *TypeChecker) inferred(decl *parser.Node, got *Type) *Type {
 	switch got.Kind {
-	case KNull:
+	case parser.NodeNullLit:
 		tc.errorf(decl, "`%s` is untyped: `null` carries no type and none was declared", decl.Lexeme)
 		return unk()
-	case KVoid:
+	case parser.NodeVoidType:
 		tc.errorf(decl, "cannot use a value that returns nothing to initialize `%s`", decl.Lexeme)
 		return unk()
 	}
@@ -240,13 +240,13 @@ func (tc *TypeChecker) infer(n *parser.Node) *Type {
 	// this should also work
 	switch n.Type {
 	case parser.NodeNumLit:
-		return &Type{Kind: KIntLit}
+		return &Type{Kind: parser.NodeNumLit}
 	case parser.NodeFloatLit:
-		return &Type{Kind: KFloatLit}
+		return &Type{Kind: parser.NodeFloatLit}
 	case parser.NodeStrLit:
-		return &Type{Kind: KStr}
+		return &Type{Kind: parser.NodeStrType}
 	case parser.NodeNullLit:
-		return &Type{Kind: KNull}
+		return &Type{Kind: parser.NodeNullLit}
 	case parser.NodeLit:
 		return tc.inferIdentifier(n)
 	case parser.NodeBinOp:
@@ -275,7 +275,7 @@ func (tc *TypeChecker) inferIdentifier(n *parser.Node) *Type {
 		return t
 	}
 	if n.Lexeme == "true" || n.Lexeme == "false" {
-		return &Type{Kind: KBool}
+		return &Type{Kind: parser.NodeBoolType}
 	}
 	// Undeclared names shouldn't be a problem
 	return unk()
@@ -293,11 +293,11 @@ func (tc *TypeChecker) inferBinOp(n *parser.Node) *Type {
 	switch n.Lexeme {
 	//arthematic operators
 	case "+", "-", "*", "/", "%":
-		if l.Kind == KUnknown || r.Kind == KUnknown {
+		if l.Kind == parser.NodeUnknownType || r.Kind == parser.NodeUnknownType {
 			return unk()
 		}
-		if n.Lexeme == "+" && l.Kind == KStr && r.Kind == KStr {
-			return &Type{Kind: KStr}
+		if n.Lexeme == "+" && l.Kind == parser.NodeStrType && r.Kind == parser.NodeStrType {
+			return &Type{Kind: parser.NodeStrType}
 		}
 		if !isNumeric(l.Kind) || !isNumeric(r.Kind) {
 			tc.errorf(n, "operator `%s` can and not be applied to `%s` and `%s`", n.Lexeme, l, r)
@@ -315,28 +315,28 @@ func (tc *TypeChecker) inferBinOp(n *parser.Node) *Type {
 		if !assignable(l, r) && !assignable(r, l) {
 			tc.errorf(n, "can't compare `%s` with `%s`", l, r)
 		}
-		return &Type{Kind: KBool}
+		return &Type{Kind: parser.NodeBoolType}
 		//
 	case "<", ">", "<=", ">=":
-		if l.Kind == KUnknown || r.Kind == KUnknown {
-			return &Type{Kind: KBool}
+		if l.Kind == parser.NodeUnknownType || r.Kind == parser.NodeUnknownType {
+			return &Type{Kind: parser.NodeBoolType}
 		}
 		numeric := isNumeric(l.Kind) && isNumeric(r.Kind)
-		text := l.Kind == KStr && r.Kind == KStr
+		text := l.Kind == parser.NodeStrType && r.Kind == parser.NodeStrType
 		if !numeric && !text {
 			tc.errorf(n, "operator `%s` cannot be applied to `%s` and `%s`", n.Lexeme, l, r)
 		} else if _, ok := unify(l, r); !ok {
 			tc.errorf(n, "mismatcheed typess `%s` and `%s` for operator `%s`", l, r, n.Lexeme)
 		}
-		return &Type{Kind: KBool}
+		return &Type{Kind: parser.NodeBoolType}
 		// and or operators
 	case "&&", "||":
 		for _, side := range []*Type{l, r} {
-			if side.Kind != KUnknown && side.Kind != KBool {
+			if side.Kind != parser.NodeUnknownType && side.Kind != parser.NodeBoolType {
 				tc.errorf(n, "operator `%s` needs `Bool` operands, got `%s`", n.Lexeme, side)
 			}
 		}
-		return &Type{Kind: KBool}
+		return &Type{Kind: parser.NodeBoolType}
 		// remaining
 	case "=", "+=", "-=", "*=", "/=", "%=":
 		if !assignable(l, r) {
@@ -353,7 +353,7 @@ func (tc *TypeChecker) inferUnary(n *parser.Node) *Type {
 
 	switch n.Lexeme {
 	case "-":
-		if t.Kind == KUnknown {
+		if t.Kind == parser.NodeUnknownType {
 			return t
 		}
 		if !isNumeric(t.Kind) {
@@ -364,11 +364,11 @@ func (tc *TypeChecker) inferUnary(n *parser.Node) *Type {
 
 	case "!":
 		switch t.Kind {
-		case KUnknown:
+		case parser.NodeUnknownType:
 			return unk()
-		case KBool:
+		case parser.NodeBoolType:
 			return t
-		case KFunc: // `fn!` is a zer0argument call
+		case parser.NodeFunction: // `fn!` is a zer0argument call
 			if len(t.Params) != 0 {
 				tc.errorf(n, "expected %d argument(s), got 0", len(t.Params))
 			}
@@ -378,13 +378,13 @@ func (tc *TypeChecker) inferUnary(n *parser.Node) *Type {
 		return unk()
 
 	case "&":
-		return &Type{Kind: KPointer, Elem: t}
+		return &Type{Kind: parser.NodePointer, Elem: t}
 
 	case "*":
 		switch t.Kind {
-		case KUnknown:
+		case parser.NodeUnknownType:
 			return unk()
-		case KPointer:
+		case parser.NodePointer:
 			return t.Elem
 		}
 		tc.errorf(n, "cannot dereference `%s`", t)
@@ -406,7 +406,7 @@ func (tc *TypeChecker) inferCall(n *parser.Node) *Type {
 		args[i] = tc.infer(a)
 	}
 
-	if callee.Kind != KFunc {
+	if callee.Kind != parser.NodeFunction {
 		// Builtin/module functions are still unknown here.
 		return unk()
 	}
@@ -429,11 +429,11 @@ func (tc *TypeChecker) inferIndex(n *parser.Node) *Type {
 	coll := tc.infer(n.Left)
 	idx := tc.infer(n.Right)
 
-	if idx.Kind != KUnknown && !isInteger(idx.Kind) {
+	if idx.Kind != parser.NodeUnknownType && !isInteger(idx.Kind) {
 		tc.errorf(n, "index must be an integer, got `%s`", idx)
 	}
 
-	if coll.Kind == KList {
+	if coll.Kind == parser.NodeArray {
 		return coll.Elem
 	}
 	return unk()
@@ -452,10 +452,10 @@ func (tc *TypeChecker) inferList(n *parser.Node) *Type {
 	if n.Left != nil {
 		t := fromTypeNode(n.Left)
 		switch t.Kind {
-		case KUnknown:
+		case parser.NodeUnknownType:
 			// Likely a struct initializer
 			return unk()
-		case KList:
+		case parser.NodeArray:
 			want = t.Elem
 		default:
 			want = t
@@ -484,5 +484,5 @@ func (tc *TypeChecker) inferList(n *parser.Node) *Type {
 	if want != nil {
 		elem = want
 	}
-	return &Type{Kind: KList, Elem: elem}
+	return &Type{Kind: parser.NodeArray, Elem: elem}
 }
