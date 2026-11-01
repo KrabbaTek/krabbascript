@@ -13,6 +13,8 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
+
+	"github.com/KrabbaTek/krabbascript/internal/typechecker" // type checker
 )
 
 var buildCmd = &cobra.Command{
@@ -110,6 +112,20 @@ var buildCmd = &cobra.Command{
 
 			os.Exit(1)
 		}
+
+		tc := typechecker.New(dir)
+		terrs := tc.Check(ast)
+		for _, err := range terrs {
+			fmt.Printf("kscript: %s: %v\n", color.RedString("failure"), err)
+		}
+		if len(terrs) != 0 {
+			color.Set(color.FgRed)
+			fmt.Printf("kscript: build halted at compilation stage (%d error(s))\n", len(terrs))
+			color.Unset()
+
+			os.Exit(1)
+		}
+
 		return nil
 	},
 }

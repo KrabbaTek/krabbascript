@@ -56,11 +56,13 @@ func _() {
 	_ = x[NodeStrType-45]
 	_ = x[NodeBoolType-46]
 	_ = x[NodeAnyType-47]
+	_ = x[NodeVoidType-48]
+	_ = x[NodeUnknownType-49]
 }
 
-const _NodeType_name = "variable defvariable decvalue defif statementelsif statementelse statementimport statementwhen statementmodule importmodule pathmodulewhen armwhen else armscopelatersicreturnanonymous functionfield decstruct declist initfunction argfunctionrootbin opunarynum litfloat litnull litlitstr litarraypointerindexfunction callI64 typeI32 typeI16 typeI8 typeU64 typeU32 typeU16 typeU8 typeF64 typeF32 typeStr typeBool typeAny type"
+const _NodeType_name = "variable defvariable decvalue defif statementelsif statementelse statementimport statementwhen statementmodule importmodule pathmodulewhen armwhen else armscopelatersicreturnanonymous functionfield decstruct declist initfunction argfunctionrootbin opunarynum litfloat litnull litlitstr litarraypointerindexfunction callI64 typeI32 typeI16 typeI8 typeU64 typeU32 typeU16 typeU8 typeF64 typeF32 typeStr typeBool typeAny typevoid typeunknown type"
 
-var _NodeType_index = [...]uint16{0, 12, 24, 33, 45, 60, 74, 90, 104, 117, 128, 134, 142, 155, 160, 165, 168, 174, 192, 201, 211, 220, 232, 240, 244, 250, 255, 262, 271, 279, 282, 289, 294, 301, 306, 319, 327, 335, 343, 350, 358, 366, 374, 381, 389, 397, 405, 414, 422}
+var _NodeType_index = [...]uint16{0, 12, 24, 33, 45, 60, 74, 90, 104, 117, 128, 134, 142, 155, 160, 165, 168, 174, 192, 201, 211, 220, 232, 240, 244, 250, 255, 262, 271, 279, 282, 289, 294, 301, 306, 319, 327, 335, 343, 350, 358, 366, 374, 381, 389, 397, 405, 414, 422, 431, 443}
 
 func (i NodeType) String() string {
 	idx := int(i) - 0

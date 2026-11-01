@@ -70,6 +70,10 @@ const (
 	NodeStrType  // Str type
 	NodeBoolType // Bool type
 	NodeAnyType  // Any type
+
+	NodeVoidType    // void type
+	NodeUnknownType // unknown type
+
 )
 
 type Node struct {
