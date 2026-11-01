@@ -7,6 +7,62 @@ Lexer -->|Tokens| Parser -->|AST| Resolver -->|Symbol table| IR["Import Resolver
 ```
 _A little pipeline of the compiler_
 
+## Formatter
+
+While the formatter isn't a critical part of the compiler pipeline, 
+it's still a part of KrabbaScript's internals, so allow me to explain the formatter a bit.
+
+In short, the Formatter takes in dirty, impure KrabbaScript and outputs pure KrabbaScript that the parser will have no problem understanding.
+
+The formatter is exposed to the outside world through two ways:
+
+The format flag in build:
+`build <file> --format`
+
+And the separate format command:
+`format <file>`
+
+The former will format and then immediately build, while the latter just formats your file and does nothing after that.
+
+Right now, the formatter only contains an Automatic Semicolon Inserter, which lets you write:
+
+```
+Std.print("OCaml on hyvä; Golang ei se")
+```
+
+without the compiler freaking out about unexpected tokens.
+
+
+The formatter is an odd one out in the pipeline because it doesn't depend on any other process, 
+and it doesn't affect any other process either;
+it doesn't need tokens from the lexer and it doesn't need an AST from the parser.
+
+All you have to do is give it a file or directory, and it'll do its thing.
+
+The ASI works by reading through each line of a file, adding a semicolon if necessary (I'll discuss the rules momentarily),
+and overwriting the file with the formatted lines.
+
+The main rules in the ASI are when not to add semicolons, as opposed to when they should be; semicolons are opt-out to the engine, not opt-in.
+
+A line will not receive a semicolon if it ends with a...
+- semicolon
+- curly bracket (opening or closing)
+- square bracket (opening or closing)
+- opening or closing parentheses
+- comma
+- symbol (+, -, *, /, etc)
+- operator (&&, ||, etc)
+
+Or, if the line is a comment (starts with a `#`).
+
+That's the formatter. It's pretty simple, but it can save you a lot of frustration.
+
+P.S.,
+
+You don't only have to use the formatter to purposefully ignore semicolons — 
+you could also use it to patch up any lines accidentally missing a semicolon.
+
+
 ## Lexer (AKA Tokenizer)
 Lexer's job is to convert the source code into a sequence of tokens. For example the following input:
 ```kscript

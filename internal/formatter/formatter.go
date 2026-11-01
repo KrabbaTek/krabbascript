@@ -3,21 +3,40 @@ package formatter
 // this file is for the automatic semicolon system in KrabbaScript
 // it's job is to automatically insert semicolons at the end of lines so you can omit semicolons in your code.
 
+// the formatter — namely FormatDir and FormatFile
+
 // - Reece Turner (reeceturner1358@gmail.com)
 
 
 import (
     "strings"
+	"os"
+	"io/fs"
+	"path/filepath"
 )
 
-// receives lines without semicolons——
+// Nothing really special, but it returns an array of strings and not a stupid array of bytes.
+func read(file_path string) ([]string, error) {
+	// read file
+	lines, readError := os.ReadFile(file_path)
+
+	if readError != nil {
+		return nil, readError
+	}
+
+	// convert []byte to []string
+	string_lines := strings.Split(strings.TrimSpace(string(lines)), "\n")
+
+	return string_lines, nil
+}
+
+// receives lines without semicolons;
 // returns lines with semicolons
 // for example, this turns 
 // var foo: I32 = 0 
 // into
 // var foo: I32 = 0;
-// This should ideally be called before the lexer to standardize input.
-func InsertSemicolons(lines []string) []string {
+func insertSemicolons(lines []string) []string {
 	// the lines with semicolons we'll be returning.
 	var newLines []string
 
@@ -56,4 +75,64 @@ func InsertSemicolons(lines []string) []string {
 	return newLines
 }
 
+// format a file — read the file into lines, add semicolons to the lines, and overwrite the file with the new semicolons.
+func FormatFile(file string) error {
+	lines, err := read(file)
+
+	if err != nil {
+		return err
+	}
+
+	formatted_lines := insertSemicolons(lines)
+
+	// replace old lines with formatted lines
+	// the line noise is because I have to convert []strings into []bytes
+	write_error := os.WriteFile(file, []byte(strings.Join(formatted_lines, "\n")), 0644)
+
+	if write_error != nil {
+		return write_error
+	}
+
+	return nil
+}
+
+// batch format an entire directory
+// once again, I use the fancy word format, but I really just mean insert semicolons.
+// recursively walks a directory looking for krabbascript (.ks) files and formats each file
+func FormatDirectory(dir string) error {
+	// extract only the KrabbaScript (.ks) files
+	var ks_file_paths []string
+
+	// I just copied this from https://zetcode.com/golang/find-file/
+	// Don't hate the player, hate the game.
+    err := filepath.WalkDir("demo", func(path string, d fs.DirEntry, err error) error {
+
+        if err != nil {
+            return err
+        }
+
+		// only append if path is a file, and is a KrabbaScript file
+        if !d.IsDir() && filepath.Ext(path) == ".ks" {
+            ks_file_paths = append(ks_file_paths, path)
+        }
+
+        return nil
+    })
+
+    if err != nil {
+        return err
+    }
+
+	// now format each KrabbaScript file
+	for _, file := range ks_file_paths {
+		err := FormatFile(file)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	// no error
+	return nil
+}
 
