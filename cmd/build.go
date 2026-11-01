@@ -9,6 +9,8 @@ import (
 	"github.com/KrabbaTek/krabbascript/internal/resolver"
 	"github.com/KrabbaTek/krabbascript/tools"
 
+	"github.com/KrabbaTek/krabbascript/internal/formatter" // formatter
+
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -19,7 +21,33 @@ var buildCmd = &cobra.Command{
 
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// refactor this into path since it could be either a file or directory
 		dir := args[0]
+
+		// user wants their code to be formatted before compilation
+		format, _ := cmd.Flags().GetBool("format")
+
+		if format {
+			info, err := os.Stat(dir)
+
+			if err != nil {
+				return err
+			}
+
+			if info.IsDir() {
+				// batch process — format each file in the directory
+				formatter.FormatDirectory(dir)
+			} else {
+				// format a single file
+
+				// This reads amazingly! Format my file named dir.
+				err := formatter.FormatFile(dir)
+
+				if err != nil {
+					return err
+				}
+			}
+		}
 
 		f, err := tools.IsFile(dir)
 		if err != nil {
@@ -87,5 +115,6 @@ var buildCmd = &cobra.Command{
 }
 
 func init() {
+	buildCmd.Flags().Bool("format", false, "Insert semicolons before building.")
 	rootCmd.AddCommand(buildCmd)
 }
