@@ -131,17 +131,25 @@ func (r *Resolver) resolveValueDef(value *parser.Node) *ResolverError {
 func (r *Resolver) resolveImport(modImport *parser.Node) *ResolverError {
 	currentScope := r.getCurrentScope()
 
-	// Get the NodeInfoFunctionCall field
+	// Get the NodeInfoBlock field
 	info, ok := modImport.Right.ExtraInfo.(*parser.NodeInfoBlock)
 	if !ok {
 		return &ResolverError{
-			What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of expression to be a function call", r.file,
+			What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of expression to be a block", r.file,
 				modImport.Line, modImport.Column),
 			Fix: "this is a programming error",
 		}
 	}
 
 	module := info.Elements[0]
+	// Check if the module is already imported
+
+	_, ok = r.lookUp(module.Lexeme)
+	if ok {
+		return &ResolverError{
+			What: fmt.Errorf("%s:%d:%d: reimport of '%s'", r.file, modImport.Line, modImport.Column, module.Lexeme),
+		}
+	}
 
 	currentScope[module.Lexeme] = &SymTableEntry{
 		Kind: SymTableImport,
@@ -209,6 +217,71 @@ func (r *Resolver) resolveExpression(expr *parser.Node) *ResolverError {
 	return nil
 }
 
+func (r *Resolver) resolveWhen(when *parser.Node) *ResolverError {
+	// Resolve when's right arm containing a literal
+	err := r.resolveExpression(when.Right)
+	if err != nil {
+		return err
+	}
+
+	// Try getting when's NodeInfoBlock
+	block, ok := when.ExtraInfo.(*parser.NodeInfoBlock)
+	if !ok {
+		return &ResolverError{
+			What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of when to be a block", r.file,
+				when.Line, when.Column),
+			Fix: "this is a programming error",
+		}
+	}
+
+	for _, arm := range block.Elements {
+		if arm.Type == parser.NodeWhenArm {
+			// Resolve it's conditional
+			err = r.resolveExpression(arm.Left.Left)
+			if err != nil {
+				return err
+			}
+
+			// Get arm's right NodeInfoBlock
+			block, ok := arm.Right.ExtraInfo.(*parser.NodeInfoBlock)
+			if !ok {
+				return &ResolverError{
+					What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of when's arm to be a block", r.file,
+						arm.Line, arm.Column),
+					Fix: "this is a programming error",
+				}
+			}
+
+			for _, el := range block.Elements {
+				err = r.resolveExpression(el)
+				if err != nil {
+					return err
+				}
+			}
+		} else {
+			// It's an else arm, no need to resolve the conditional
+			// Get arm's right NodeInfoBlock
+			block, ok := arm.Right.ExtraInfo.(*parser.NodeInfoBlock)
+			if !ok {
+				return &ResolverError{
+					What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of when's arm to be a block", r.file,
+						arm.Line, arm.Column),
+					Fix: "this is a programming error",
+				}
+			}
+
+			for _, el := range block.Elements {
+				err = r.resolveExpression(el)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 func (r *Resolver) Walk(ast *parser.Node) ([]map[string]*SymTableEntry, []*ResolverError) {
 	// Validate that the root of the AST is actually a root type
 	if ast.Type != parser.NodeRoot {
@@ -251,6 +324,12 @@ func (r *Resolver) Walk(ast *parser.Node) ([]map[string]*SymTableEntry, []*Resol
 
 		case parser.NodeImportStatement:
 			err := r.resolveImport(el)
+			if err != nil {
+				r.errors = append(r.errors, err)
+			}
+
+		case parser.NodeWhenStatement:
+			err := r.resolveWhen(el)
 			if err != nil {
 				r.errors = append(r.errors, err)
 			}
