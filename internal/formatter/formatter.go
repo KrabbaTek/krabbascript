@@ -40,10 +40,12 @@ func insertSemicolons(lines []string) []string {
 	var newLines []string
 
 	for _, line := range lines {
-		line = strings.TrimSpace(line)
+		// keep the leading tabspace, only strip trailing whitespace
+		line = strings.TrimRight(line, " \t\r")
 
-		// ignore empty lines
-		if line == "" {
+		// keep empty lines as they are
+		if strings.TrimSpace(line) == "" {
+			newLines = append(newLines, line)
 			continue
 		}
 
@@ -62,7 +64,7 @@ func insertSemicolons(lines []string) []string {
 			strings.HasSuffix(line, "*") ||
 			strings.HasSuffix(line, "/") ||
 			strings.HasSuffix(line, "%") ||
-			strings.HasPrefix(line, "#") {
+			strings.HasPrefix(strings.TrimSpace(line), "#") {
 			newLines = append(newLines, line)
 		} else {
 			// append semicolon
