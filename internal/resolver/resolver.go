@@ -248,6 +248,14 @@ func (r *Resolver) resolveExpression(expr *parser.Node) *ResolverError {
 		if err != nil {
 			return err
 		}
+
+		// Resolve the args
+		for _, arg := range info.Args {
+			err = r.resolveExpression(arg)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
