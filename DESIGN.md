@@ -3,7 +3,7 @@
 ```mermaid
 flowchart LR
 
-Lexer -->|Tokens| Parser -->|AST| Resolver -->|Symbol table| IR["Import Resolver"] --> TC["Type Checker"] --> CFG -->|Control Flow Graph| LLVMIR["LLVM IR"] --> |Object File| Linker --> Executable
+Lexer -->|Tokens| Parser -->|AST| IR["Import Resolver"] --> Resolver -->|Symbol table| TC["Type Checker"] --> CFG -->|Control Flow Graph| LLVMIR["LLVM IR"] --> |Object File| Linker --> Executable
 ```
 _A little pipeline of the compiler_
 
