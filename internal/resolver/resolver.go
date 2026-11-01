@@ -180,6 +180,16 @@ func (r *Resolver) resolveIfStatement(ifStat *parser.Node) *ResolverError {
 	return nil
 }
 
+func (r *Resolver) resolveElseStatement(elseStat *parser.Node) *ResolverError {
+	// Create a new scope for the elsif statement
+	r.symTable = append(r.symTable, make(map[string]*SymTableEntry))
+	defer r.popScope() // We should pop the scope after so you can't access variables inside a scope
+
+	r.walkBlock(elseStat)
+
+	return nil
+}
+
 func (r *Resolver) resolveExpression(expr *parser.Node) *ResolverError {
 	if expr == nil {
 		return nil
@@ -187,13 +197,14 @@ func (r *Resolver) resolveExpression(expr *parser.Node) *ResolverError {
 
 	switch expr.Type {
 	case parser.NodeBinOp:
-		if expr.Lexeme == "." {
+		switch expr.Lexeme {
+		case ".":
 			// Only check if left exists
 			err := r.resolveExpression(expr.Left)
 			if err != nil {
 				return err
 			}
-		} else {
+		default:
 			// Check both left and right
 			err := r.resolveExpression(expr.Left)
 			if err != nil {
@@ -206,7 +217,12 @@ func (r *Resolver) resolveExpression(expr *parser.Node) *ResolverError {
 				return err
 			}
 		}
-
+	case parser.NodeUnary:
+		// Only check if right exists
+		err := r.resolveExpression(expr.Right)
+		if err != nil {
+			return err
+		}
 	case parser.NodeLit:
 		// Look up if it exists
 		_, ok := r.lookUp(expr.Lexeme)
@@ -339,6 +355,17 @@ func (r *Resolver) walkBlock(block *parser.Node) {
 
 		case parser.NodeIfStatement:
 			err := r.resolveIfStatement(el)
+			if err != nil {
+				r.errors = append(r.errors, err)
+			}
+		case parser.NodeElsifStatement:
+			// Reuse the if statement because Elsif and If statements are similar in structure
+			err := r.resolveIfStatement(el)
+			if err != nil {
+				r.errors = append(r.errors, err)
+			}
+		case parser.NodeElseStatement:
+			err := r.resolveElseStatement(el)
 			if err != nil {
 				r.errors = append(r.errors, err)
 			}
