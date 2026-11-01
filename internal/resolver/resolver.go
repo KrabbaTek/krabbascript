@@ -248,6 +248,14 @@ func (r *Resolver) resolveExpression(expr *parser.Node) *ResolverError {
 		if err != nil {
 			return err
 		}
+
+		// Resolve the args
+		for _, arg := range info.Args {
+			err = r.resolveExpression(arg)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
@@ -294,6 +302,53 @@ func (r *Resolver) resolveWhen(when *parser.Node) *ResolverError {
 	return nil
 }
 
+func (r *Resolver) resolveFunction(function *parser.Node) *ResolverError {
+	funct, ok := function.ExtraInfo.(*parser.NodeInfoFunction)
+	if !ok {
+		return &ResolverError{
+			What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of function to be a function", r.file,
+				function.Line, function.Column),
+			Fix: "this is a programming error",
+		}
+	}
+
+	// Look up if the function already exists
+	_, ok = r.lookUp(function.Lexeme)
+	if ok {
+		return &ResolverError{
+			What: fmt.Errorf("%s:%d:%d: redeclaration of %s", r.file, function.Line, function.Column, function.Lexeme),
+		}
+	}
+
+	// Create a new scope for the function
+	r.symTable = append(r.symTable, make(map[string]*SymTableEntry))
+
+	// Get the function's scope
+	scope := r.getCurrentScope()
+
+	// Loop over the args and add bring them to the scope
+	for _, arg := range funct.Args {
+		scope[arg.Left.Lexeme] = &SymTableEntry{
+			Kind: SymTableFunctionArg,
+			Type: arg.Right,
+			Ref:  arg,
+		}
+	}
+
+	r.walkBlock(funct.Body)
+	r.popScope()
+
+	// Get the current scope
+	scope = r.getCurrentScope()
+	scope[function.Lexeme] = &SymTableEntry{
+		Kind: SymTableFunction,
+		Type: funct.ReturnType, // The type here is the return type
+		Ref:  function,
+	}
+
+	return nil
+}
+
 func (r *Resolver) Walk(ast *parser.Node) ([]map[string]*SymTableEntry, []*ResolverError) {
 	// Validate that the root of the AST is actually a root type
 	if ast.Type != parser.NodeRoot {
@@ -308,6 +363,9 @@ func (r *Resolver) Walk(ast *parser.Node) ([]map[string]*SymTableEntry, []*Resol
 	// Create a global scope which will always exist
 	r.symTable = append(r.symTable, make(map[string]*SymTableEntry))
 	r.walkBlock(ast)
+
+	fmt.Println("AST:")
+	ast.Print()
 
 	return r.symTable, r.errors
 }
@@ -369,8 +427,16 @@ func (r *Resolver) walkBlock(block *parser.Node) {
 			if err != nil {
 				r.errors = append(r.errors, err)
 			}
+
+		case parser.NodeFunction:
+			err := r.resolveFunction(el)
+			if err != nil {
+				r.errors = append(r.errors, err)
+			}
+
 		case parser.NodeScope:
 			r.walkBlock(el)
+
 		default:
 			// r.errors = append(r.errors, &ResolverError{
 			// 	What: fmt.Errorf("%s:%d:%d: not supported by the resolver",
@@ -383,6 +449,4 @@ func (r *Resolver) walkBlock(block *parser.Node) {
 			}
 		}
 	}
-
-	block.Print()
 }

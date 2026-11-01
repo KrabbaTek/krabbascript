@@ -95,6 +95,7 @@ var buildCmd = &cobra.Command{
 		res := resolver.NewResolver(dir)
 		symTable, rerrors := res.Walk(ast)
 
+		fmt.Println("symbol table:")
 		for _, htable := range symTable {
 			for v, k := range htable {
 				k.Print(v)

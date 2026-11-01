@@ -14,7 +14,9 @@ const (
 	SymTableVariableDec                          // variable dec
 	SymTableValueDef                             // value def
 
-	SymTableImport // import
+	SymTableImport      // import
+	SymTableFunction    // function
+	SymTableFunctionArg // function arg
 )
 
 type SymTableEntry struct {
