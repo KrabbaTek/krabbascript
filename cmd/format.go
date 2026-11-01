@@ -8,18 +8,17 @@ package cmd
 
 // - Reece Turner (reeceturner1358@gmail.com)
 
-import(
+import (
 	"github.com/spf13/cobra"
 
 	"github.com/KrabbaTek/krabbascript/internal/formatter" // formatter
 )
 
-
 var formatCmd = &cobra.Command{
-	Use: "format [file]",
-	Short: "Run the formatter on a file",
-	Args: cobra.MinimumNArgs(1), // require a file to be passed
-	DisableFlagsInUseLine: true, // format doesn't need any flags and this makes the usage message more accurate
+	Use:                   "format <file>",
+	Short:                 "Run the formatter on a file",
+	Args:                  cobra.ExactArgs(1), // require a file to be passed
+	DisableFlagsInUseLine: true,               // format doesn't need any flags and this makes the usage message more accurate
 	Long: `
 	Run the ASI (Automatic Semicolon Insertion) engine on the given file.
 	This should be done before compiling a KrabbaScript file.

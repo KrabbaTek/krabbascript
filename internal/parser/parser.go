@@ -1635,13 +1635,14 @@ func (p *Parser) parseWhenToks(s *TokenStream) (*Node, *ParserError) {
 		}
 	}
 
-	lit := p.consumeToks(s)
-	node.Right = &Node{
-		Line:   lit.Line,
-		Column: lit.Column,
-		Type:   NodeLit,
-		Lexeme: lit.Value,
+	nLit, cerr := p.convertType(s)
+	if cerr != nil {
+		return nil, &ParserError{
+			What: cerr,
+		}
 	}
+
+	node.Right = nLit
 
 	err = p.expectToks(s, lexer.TokenOpenBrack)
 	if err != nil {

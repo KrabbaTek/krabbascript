@@ -7,33 +7,32 @@ package formatter
 
 // - Reece Turner (reeceturner1358@gmail.com)
 
-
 import (
-    "strings"
-	"os"
 	"io/fs"
+	"os"
 	"path/filepath"
+	"strings"
 )
 
 // Nothing really special, but it returns an array of strings and not a stupid array of bytes.
-func read(file_path string) ([]string, error) {
+func read(path string) ([]string, error) {
 	// read file
-	lines, readError := os.ReadFile(file_path)
+	lines, readError := os.ReadFile(path)
 
 	if readError != nil {
 		return nil, readError
 	}
 
 	// convert []byte to []string
-	string_lines := strings.Split(strings.TrimSpace(string(lines)), "\n")
+	stringLines := strings.Split(strings.TrimSpace(string(lines)), "\n")
 
-	return string_lines, nil
+	return stringLines, nil
 }
 
 // receives lines without semicolons;
 // returns lines with semicolons
-// for example, this turns 
-// var foo: I32 = 0 
+// for example, this turns
+// var foo: I32 = 0
 // into
 // var foo: I32 = 0;
 func insertSemicolons(lines []string) []string {
@@ -49,21 +48,21 @@ func insertSemicolons(lines []string) []string {
 		}
 
 		// append lines without changes if they already end with a semicolon or don't need one
-		if strings.HasSuffix(line, ";") || 
-		strings.HasSuffix(line, "{") || 
-		strings.HasSuffix(line, "}") ||
-		strings.HasSuffix(line, "(") ||
-		strings.HasSuffix(line, "[") ||
-		strings.HasSuffix(line, ",") ||
-		strings.HasSuffix(line, ":") ||
-		strings.HasSuffix(line, "&&") ||
-		strings.HasSuffix(line, "||") ||
-		strings.HasSuffix(line, "+") ||
-		strings.HasSuffix(line, "-") ||
-		strings.HasSuffix(line, "*") ||
-		strings.HasSuffix(line, "/") ||
-		strings.HasSuffix(line, "%") ||
-		strings.HasPrefix(line, "#") {
+		if strings.HasSuffix(line, ";") ||
+			strings.HasSuffix(line, "{") ||
+			strings.HasSuffix(line, "}") ||
+			strings.HasSuffix(line, "(") ||
+			strings.HasSuffix(line, "[") ||
+			strings.HasSuffix(line, ",") ||
+			strings.HasSuffix(line, ":") ||
+			strings.HasSuffix(line, "&&") ||
+			strings.HasSuffix(line, "||") ||
+			strings.HasSuffix(line, "+") ||
+			strings.HasSuffix(line, "-") ||
+			strings.HasSuffix(line, "*") ||
+			strings.HasSuffix(line, "/") ||
+			strings.HasSuffix(line, "%") ||
+			strings.HasPrefix(line, "#") {
 			newLines = append(newLines, line)
 		} else {
 			// append semicolon
@@ -83,14 +82,14 @@ func FormatFile(file string) error {
 		return err
 	}
 
-	formatted_lines := insertSemicolons(lines)
+	formattedLines := insertSemicolons(lines)
 
 	// replace old lines with formatted lines
 	// the line noise is because I have to convert []strings into []bytes
-	write_error := os.WriteFile(file, []byte(strings.Join(formatted_lines, "\n")), 0644)
+	writeError := os.WriteFile(file, []byte(strings.Join(formattedLines, "\n")), 0644)
 
-	if write_error != nil {
-		return write_error
+	if writeError != nil {
+		return writeError
 	}
 
 	return nil
@@ -101,30 +100,30 @@ func FormatFile(file string) error {
 // recursively walks a directory looking for krabbascript (.ks) files and formats each file
 func FormatDirectory(dir string) error {
 	// extract only the KrabbaScript (.ks) files
-	var ks_file_paths []string
+	var filePaths []string
 
 	// I just copied this from https://zetcode.com/golang/find-file/
 	// Don't hate the player, hate the game.
-    err := filepath.WalkDir("demo", func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir("demo", func(path string, d fs.DirEntry, err error) error {
 
-        if err != nil {
-            return err
-        }
+		if err != nil {
+			return err
+		}
 
 		// only append if path is a file, and is a KrabbaScript file
-        if !d.IsDir() && filepath.Ext(path) == ".ks" {
-            ks_file_paths = append(ks_file_paths, path)
-        }
+		if !d.IsDir() && filepath.Ext(path) == ".ks" {
+			filePaths = append(filePaths, path)
+		}
 
-        return nil
-    })
+		return nil
+	})
 
-    if err != nil {
-        return err
-    }
+	if err != nil {
+		return err
+	}
 
 	// now format each KrabbaScript file
-	for _, file := range ks_file_paths {
+	for _, file := range filePaths {
 		err := FormatFile(file)
 
 		if err != nil {
@@ -135,4 +134,3 @@ func FormatDirectory(dir string) error {
 	// no error
 	return nil
 }
-
