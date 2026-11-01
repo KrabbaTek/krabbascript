@@ -21,7 +21,7 @@ var formatCmd = &cobra.Command{
 	Args: cobra.MinimumNArgs(1), // require a file to be passed
 	DisableFlagsInUseLine: true, // format doesn't need any flags and this makes the usage message more accurate
 	Long: `
-	As of 10/26/2026, this will only run the ASI (Automatic Semicolon Insertion) engine on the given file.
+	Run the ASI (Automatic Semicolon Insertion) engine on the given file.
 	This should be done before compiling a KrabbaScript file.
 	`,
 	RunE: func(cmd *cobra.Command, args []string) error {
