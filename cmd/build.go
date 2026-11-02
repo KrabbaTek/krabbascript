@@ -60,31 +60,39 @@ var buildCmd = &cobra.Command{
 			return fmt.Errorf("building directories is not supported")
 		}
 
-		l, _ := lexer.NewLexer(dir)
-		toks := l.Scan()
+		l, err := lexer.NewLexer(dir)
+		if err != nil {
+			return err
+		}
+
+		toks, errors := l.Scan()
 
 		// for _, tok := range toks {
 		// 	fmt.Println(tok)
 		// }
 
-		if errs := l.GetErrors(); errs != 0 {
+		if len(errors) > 0 {
+			for _, lerr := range errors {
+				fmt.Printf("kscript: %s: %v", color.RedString("error"), lerr)
+			}
+
 			fmt.Print("kscript: ")
 
 			color.Set(color.FgRed)
-			fmt.Printf("compilation failed with %d error(s)\n", errs)
+			fmt.Printf("compilation failed with %d error(s)\n", len(errors))
 			color.Unset()
 
 			os.Exit(1)
 		}
 
 		p := parser.NewParser(toks, dir)
-		ast, errors := p.Parse()
+		ast, perrors := p.Parse()
 
-		for _, err := range errors {
+		for _, err := range perrors {
 			fmt.Printf("kscript: %s: %v\n", color.RedString("error"), err)
 		}
 
-		if len(errors) != 0 {
+		if len(perrors) != 0 {
 			color.Set(color.FgRed)
 			fmt.Printf("compilation failed with %d error(s)\n", len(errors))
 			color.Unset()
