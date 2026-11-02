@@ -13,7 +13,11 @@ func testTokenSequence(t *testing.T, source string, expected []expectedToken) {
 	t.Helper()
 
 	l := NewLexerFromStr(source, "test")
-	tokens := l.Scan()
+	tokens, errors := l.Scan()
+
+	if len(errors) > 0 {
+		t.Fatalf("lexer reported %d errors", len(errors))
+	}
 
 	if len(tokens) != len(expected) {
 		t.Fatalf("token count mismatch: got %d tokens, want %d", len(tokens), len(expected))
