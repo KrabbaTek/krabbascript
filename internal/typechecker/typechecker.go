@@ -90,7 +90,7 @@ func funcType(info *parser.NodeInfoFunction) *Type {
 			ft.Params = append(ft.Params, unk())
 			continue
 		}
-		ft.Params = append(ft.Params, fromTypeNode(firstNode(a.Left, a.Right)))
+		ft.Params = append(ft.Params, fromTypeNode(a.Right)) // Left is the name and right is the type
 	}
 	return ft
 }
@@ -162,8 +162,8 @@ func (tc *TypeChecker) checkFunctionBody(info *parser.NodeInfoFunction, ft *Type
 	tc.push()
 
 	for i, a := range info.Args {
-		if a != nil {
-			tc.declare(a.Lexeme, ft.Params[i])
+		if a != nil && a.Left != nil {
+			tc.declare(a.Left.Lexeme, ft.Params[i])
 		}
 	}
 
