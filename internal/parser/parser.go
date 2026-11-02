@@ -1324,100 +1324,27 @@ func (p *Parser) parseElseToks(s *TokenStream) (*Node, *ParserError) {
 	return node, nil
 }
 
-func (p *Parser) parseImportModulePathToks(s *TokenStream) (*Node, *ParserError) {
-	// It's guaranteed that the stream we got is not EOF, but check just in case
-	start := p.currentToks(s)
-
-	if start.Type == lexer.TokenEof {
-		return nil, &ParserError{
-			What: fmt.Errorf("%s:%d:%d: expected a module path (example: import %s;), got %s", p.file, start.Line, start.Column, color.GreenString("Std.SomeMod"), start),
-		}
-	}
-
-	path := Node{
-		Line:   start.Line,
-		Column: start.Column,
-		Type:   NodeModulePath,
-
-		ExtraInfo: &NodeInfoBlock{}, // This will hold the module path
-	}
-
-	for {
-		c := p.currentToks(s)
-
-		if c.Type == lexer.TokenEof {
-			// Reached end of stream
-			break
-		}
-
-		err := p.expectToks(s, lexer.TokenLiteral)
-		if err != nil {
-			return nil, &ParserError{
-				What: fmt.Errorf("%s:%d:%d: expected module name, got '%s'", p.file, c.Line, c.Column, c),
-			}
-		}
-
-		next := p.peekToks(s)
-
-		if next.Type != lexer.TokenDot && next.Type != lexer.TokenEof {
-			return nil, &ParserError{
-				What: fmt.Errorf("%s:%d:%d: expected '.' or ';' after module, got %s", p.file, next.Line, next.Column, next),
-			}
-		}
-
-		// Add the literal to the NodeBlock
-		lit := p.consumeToks(s)
-		p.appendToBlock(&path, &Node{
-			Lexeme: lit.Value,
-			Type:   NodeModuleImport,
-		})
-
-		c = p.currentToks(s)
-
-		// Skip the dot if exists
-		if c.Type == lexer.TokenDot {
-			p.consumeToks(s)
-
-			// If there is a dot after EOF, throw a mean error
-			c = p.currentToks(s)
-			if c.Type == lexer.TokenEof {
-				return nil, &ParserError{
-					What: fmt.Errorf("%s:%d:%d: trailing comma. expected module name after '.', got '%s'", p.file, c.Line, c.Column, c),
-				}
-			}
-		}
-	}
-
-	return &path, nil
-}
-
 func (p *Parser) parseImportToks(s *TokenStream) (*Node, *ParserError) {
 	start := p.consumeToks(s)
-
-	// Collect everything into a buffer which will hold the node path.
-
-	// import Std.EpicMod;
-	//        ^^^^^^^^^^^
 
 	current := p.currentToks(s)
 	if current.Type == lexer.TokenEof || current.Type == lexer.TokenSemi {
 		return nil, &ParserError{
-			What: fmt.Errorf("%s:%d:%d: expected a module path (example: import %s;), got %s", p.file, current.Line, current.Column, color.GreenString("Std.SomeMod"), current),
+			What: fmt.Errorf("%s:%d:%d: expected a module (example: import %s;), got %s", p.file, current.Line, current.Column, color.GreenString("Std"), current),
 		}
 	}
 
-	var toks []lexer.Token
-	for {
-		t := p.currentToks(s)
-		if t.Type == lexer.TokenEof || t.Type == lexer.TokenSemi {
-			break
+	err := p.expectToks(s, lexer.TokenLiteral)
+	if err != nil {
+		current := p.currentToks(s)
+		return nil, &ParserError{
+			What: fmt.Errorf("%s:%d:%d: expected a module (example: import %s;), got %s", p.file, current.Line, current.Column, color.GreenString("Std"), current),
 		}
-
-		toks = append(toks, t)
-		p.consumeToks(s)
 	}
 
-	err := p.skipToks(s, lexer.TokenSemi)
+	module := p.consumeToks(s)
+
+	err = p.skipToks(s, lexer.TokenSemi)
 	if err != nil {
 		return nil, err
 	}
@@ -1427,30 +1354,14 @@ func (p *Parser) parseImportToks(s *TokenStream) (*Node, *ParserError) {
 		Column: start.Column,
 
 		Type: NodeImportStatement,
+		Right: &Node{
+			Line:   module.Line,
+			Column: module.Column,
+			Type:   NodeLit,
+			Lexeme: module.Value,
+		},
 	}
 
-	// Add an EOF by getting the last element and using it as the Line and Col for the EOF token
-	last := toks[len(toks)-1]
-	toks = append(toks, lexer.Token{
-		Line:   last.Line,
-		Column: last.Column,
-		Type:   lexer.TokenEof,
-	})
-
-	// Create a new stream for ImportModulePath to work with
-	stream := TokenStream{
-		toks: toks,
-		pos:  0, // This is just boilerplate
-	}
-
-	// Parse the module path
-	path, merror := p.parseImportModulePathToks(&stream)
-	if merror != nil {
-		return nil, merror
-	}
-
-	// Set the path to the right side
-	node.Right = path
 	return &node, nil
 }
 

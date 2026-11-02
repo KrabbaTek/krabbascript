@@ -20,7 +20,6 @@ const (
 	NodeWhenStatement   // when statement
 
 	NodeModuleImport // module import
-	NodeModulePath   // module path
 	NodeModule       // module
 
 	NodeWhenArm     // when arm
