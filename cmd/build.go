@@ -3,7 +3,9 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path"
 
+	"github.com/KrabbaTek/krabbascript/internal/importresolver"
 	"github.com/KrabbaTek/krabbascript/internal/lexer"
 	"github.com/KrabbaTek/krabbascript/internal/parser"
 	"github.com/KrabbaTek/krabbascript/internal/resolver"
@@ -60,12 +62,18 @@ var buildCmd = &cobra.Command{
 			return fmt.Errorf("building directories is not supported")
 		}
 
+		home, err := importresolver.GetKscriptHome()
+		if err != nil {
+			return err
+		}
+
+		err = os.MkdirAll(path.Join(home, "libs"), 0755)
+		if err != nil {
+			return err
+		}
+
 		l, _ := lexer.NewLexer(dir)
 		toks := l.Scan()
-
-		// for _, tok := range toks {
-		// 	fmt.Println(tok)
-		// }
 
 		if errs := l.GetErrors(); errs != 0 {
 			fmt.Print("kscript: ")
@@ -90,6 +98,16 @@ var buildCmd = &cobra.Command{
 			color.Unset()
 
 			os.Exit(1)
+		}
+
+		ires, err := importresolver.NewImportResolver(make([]string, 0))
+		if err != nil {
+			return err
+		}
+
+		irerrors := ires.ResolveLibs(ast)
+		for _, err := range irerrors {
+			fmt.Printf("kscript: %s: %v\n", color.RedString("error"), err)
 		}
 
 		res := resolver.NewResolver(dir)
