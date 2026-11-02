@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
-
-	"github.com/fatih/color"
 )
 
 type Lexer struct {
@@ -19,8 +17,8 @@ type Lexer struct {
 	keywords map[string]TokenType
 	symbols  map[string]TokenType
 
-	buffer    bytes.Buffer
-	numErrors int
+	buffer bytes.Buffer
+	errors []error
 }
 
 func (l *Lexer) current() (byte, bool) {
@@ -184,19 +182,13 @@ func NewLexerFromStr(src string, fName string) Lexer {
 	}
 }
 
-func (l *Lexer) GetErrors() int {
-	return l.numErrors
-}
-
 func (l *Lexer) ReportError(startL int, startC int, msg string, a ...any) {
-	l.numErrors++
 	msg = fmt.Sprintf(msg, a...)
 	// Trim since some strings begin with a space already at the beginning
-	fmt.Printf("kscript: %s: %s:%d:%d: %s\n", color.RedString("error"), l.file, startL, startC,
-		strings.TrimSpace(msg))
+	l.errors = append(l.errors, fmt.Errorf("%s:%d:%d: %s\n", l.file, startL, startC, strings.TrimSpace(msg)))
 }
 
-func (l *Lexer) Scan() []Token {
+func (l *Lexer) Scan() ([]Token, []error) {
 	var toks []Token
 	for {
 		c, ok := l.current()
@@ -407,5 +399,5 @@ func (l *Lexer) Scan() []Token {
 		Column: l.column,
 		Type:   TokenEof,
 	})
-	return toks
+	return toks, l.errors
 }

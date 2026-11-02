@@ -1680,6 +1680,23 @@ func (p *Parser) parseFunctionArgsToks(s *TokenStream) ([]*Node, *ParserError) {
 		}
 
 		args = append(args, arg)
+
+		//seperate parameters by commas
+		next := p.currentToks(s)
+		if next.Type == lexer.TokenComma {
+			p.consumeToks(s)
+			// if else................
+			if after := p.currentToks(s); after.Type == lexer.TokenEof {
+				return nil, &ParserError{
+					What: fmt.Errorf("%s:%d:%d: expected a parameter after ','", p.file, after.Line, after.Column),
+					Fix:  "remove the trailing comma", 
+				}
+			}
+		} else if next.Type != lexer.TokenEof {
+			return nil, &ParserError{
+				What: fmt.Errorf("%s:%d:%d: expected ',' or ')' after a parameter, got '%s'", p.file, next.Line, next.Column, next),
+			}
+		}
 	}
 
 	return args, nil
