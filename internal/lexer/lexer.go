@@ -188,6 +188,14 @@ func (l *Lexer) GetErrors() int {
 	return l.numErrors
 }
 
+func (l *Lexer) ReportError(startL int, startC int, msg string, a ...any) {
+	l.numErrors++
+	msg = fmt.Sprintf(msg, a...)
+	// Trim since some strings begin with a space already at the beginning
+	fmt.Printf("kscript: %s: %s:%d:%d: %s\n", color.RedString("error"), l.file, startL, startC,
+		strings.TrimSpace(msg))
+}
+
 func (l *Lexer) Scan() []Token {
 	var toks []Token
 	for {
@@ -277,8 +285,7 @@ func (l *Lexer) Scan() []Token {
 				f, err := strconv.ParseFloat(l.buffer.String(), 64)
 
 				if err != nil {
-					l.numErrors++
-					fmt.Printf("kscript: %s: %s:%d:%d: %v\n", color.RedString("error"), l.file, startL, startC, err)
+					l.ReportError(startL, startC, "%v", err)
 
 					l.buffer.Reset()
 				} else {
@@ -297,8 +304,7 @@ func (l *Lexer) Scan() []Token {
 				i, err := strconv.ParseInt(l.buffer.String(), 10, 64)
 
 				if err != nil {
-					l.numErrors++
-					fmt.Printf("kscript: error: %s:%d:%d: %v\n", l.file, startL, startC, err)
+					l.ReportError(startL, startC, "%v", err)
 
 					l.buffer.Reset()
 				} else {
@@ -368,11 +374,10 @@ func (l *Lexer) Scan() []Token {
 
 				c, ok := l.current()
 				if !ok || c != '"' {
-					l.numErrors++
 					if c != 0 {
-						fmt.Printf("kscript: %s: %s:%d:%d: expected \", got %s\n", color.RedString("error"), l.file, startL, startC, string(c))
+						l.ReportError(startL, startC, "expected \", got %s", string(c))
 					} else {
-						fmt.Printf("kscript: %s: %s:%d:%d: expected \", got <eof>\n", color.RedString("error"), l.file, startL, startC)
+						l.ReportError(startL, startC, "expected \", got <eof>")
 					}
 
 					continue
@@ -390,8 +395,7 @@ func (l *Lexer) Scan() []Token {
 				toks = append(toks, tok)
 				l.buffer.Reset()
 			} else {
-				l.numErrors++
-				fmt.Printf("kscript: %s: %s:%d:%d: unknown symbol %q\n", color.RedString("error"), l.file, startL, startC, oneChar)
+				l.ReportError(startL, startC, "unknown symbol %q", oneChar)
 
 				l.consume()
 			}
