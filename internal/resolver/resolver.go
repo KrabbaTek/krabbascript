@@ -136,19 +136,10 @@ func (r *Resolver) resolveImport(modImport *parser.Node) *ResolverError {
 	currentScope := r.getCurrentScope()
 
 	// Get the NodeInfoBlock field
-	info, ok := modImport.Right.ExtraInfo.(*parser.NodeInfoBlock)
-	if !ok {
-		return &ResolverError{
-			What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of expression to be a block", r.file,
-				modImport.Line, modImport.Column),
-			Fix: "this is a programming error",
-		}
-	}
+	module := modImport.Right
 
-	module := info.Elements[0]
 	// Check if the module is already imported
-
-	_, ok = r.lookUp(module.Lexeme)
+	_, ok := r.lookUp(module.Lexeme)
 	if ok {
 		return &ResolverError{
 			What: fmt.Errorf("%s:%d:%d: reimport of '%s'", r.file, modImport.Line, modImport.Column, module.Lexeme),
