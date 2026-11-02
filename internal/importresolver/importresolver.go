@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/KrabbaTek/krabbascript/internal/lexer"
 	"github.com/KrabbaTek/krabbascript/internal/parser"
 )
 
@@ -56,7 +57,7 @@ func (ir *ImportResolver) resolveImport(modImport string) {
 func (ir *ImportResolver) resolveImports(imports []*parser.Node) {
 	// Walk all of the library folders
 	for _, libDir := range ir.libPaths {
-		filepath.WalkDir(libDir, func(path string, d fs.DirEntry, err error) error {
+		err := filepath.WalkDir(libDir, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return err
 			}
@@ -69,10 +70,22 @@ func (ir *ImportResolver) resolveImports(imports []*parser.Node) {
 			// Print every .ks file path for now
 			if !d.IsDir() && filepath.Ext(path) == ".ks" {
 				fmt.Println(path)
+
+				lexer, err := lexer.NewLexer(path)
+				if err != nil {
+					return err
+				}
+
+				lexer.Scan()
 			}
 
 			return nil
 		})
+
+		if err != nil {
+			ir.errors = append(ir.errors, err)
+			return
+		}
 	}
 }
 
