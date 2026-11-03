@@ -162,6 +162,10 @@ func TestSymbolsAndOperators(t *testing.T) {
 		{"greater_than", ">", TokenGreaterThan},
 		{"less_eq", "<=", TokenLessEq},
 		{"greater_eq", ">=", TokenGreaterEq},
+		{"percent", "%", TokenPercent},
+		{"logical_and", "&&", TokenAndAnd},
+		{"logical_or", "||", TokenOrOr},
+	}
 	}
 
 	for _, tt := range tests {
@@ -230,4 +234,20 @@ func TestStringLiteral(t *testing.T) {
 	}
 
 	testTokenSequence(t, input, expected)
+}
+
+func TestLogicalOperatorsStayDistinct(t *testing.T) {
+	testTokenSequence(t, "a && b || c & d | e %", []expectedToken{
+		{TokenLiteral, "a"},
+		{TokenAndAnd, ""},
+		{TokenLiteral, "b"},
+		{TokenOrOr, ""},
+		{TokenLiteral, "c"},
+		{TokenBand, ""},
+		{TokenLiteral, "d"},
+		{TokenBor, ""},
+		{TokenLiteral, "e"},
+		{TokenPercent, ""},
+		{TokenEof, ""},
+	})
 }

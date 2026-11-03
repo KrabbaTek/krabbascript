@@ -30,6 +30,8 @@ func newBindings() map[lexer.TokenType]Binding {
 		// Multiplication and division (*,/)
 		lexer.TokenMul: {BindingPrecedence: PrecedenceFactor, BindingSide: LeftSide},
 		lexer.TokenDiv: {BindingPrecedence: PrecedenceFactor, BindingSide: LeftSide},
+		// Percent (%)
+		lexer.TokenPercent: {BindingPrecedence: PrecedenceFactor, BindingSide: LeftSide},
 		// Compasion (==, !=, <, >, >=, <=)
 		lexer.TokenEqEq:        {BindingPrecedence: PrecedenceComparison, BindingSide: LeftSide},
 		lexer.TokenNotEq:       {BindingPrecedence: PrecedenceComparison, BindingSide: LeftSide},
@@ -37,6 +39,9 @@ func newBindings() map[lexer.TokenType]Binding {
 		lexer.TokenGreaterThan: {BindingPrecedence: PrecedenceComparison, BindingSide: LeftSide},
 		lexer.TokenLessEq:      {BindingPrecedence: PrecedenceComparison, BindingSide: LeftSide},
 		lexer.TokenGreaterEq:   {BindingPrecedence: PrecedenceComparison, BindingSide: LeftSide},
+		// Logical (&&, ||)
+		lexer.TokenAndAnd: {BindingPrecedence: PrecedenceLogicalAnd, BindingSide: LeftSide},
+		lexer.TokenOrOr:   {BindingPrecedence: PrecedenceLogicalOr, BindingSide: LeftSide},
 		// Bitwise (&,|,^)
 		lexer.TokenBand: {BindingPrecedence: PrecedenceBitwise, BindingSide: LeftSide},
 		lexer.TokenBor:  {BindingPrecedence: PrecedenceBitwise, BindingSide: LeftSide},
@@ -1689,7 +1694,7 @@ func (p *Parser) parseFunctionArgsToks(s *TokenStream) ([]*Node, *ParserError) {
 			if after := p.currentToks(s); after.Type == lexer.TokenEof {
 				return nil, &ParserError{
 					What: fmt.Errorf("%s:%d:%d: expected a parameter after ','", p.file, after.Line, after.Column),
-					Fix:  "remove the trailing comma", 
+					Fix:  "remove the trailing comma",
 				}
 			}
 		} else if next.Type != lexer.TokenEof {
