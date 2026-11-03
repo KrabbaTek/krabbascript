@@ -105,7 +105,6 @@ const (
 	TokenAndAnd
 	TokenOrOr
 
-	// Compiler stuff
 
 	// Compiler stuff
 	TokenLiteral
