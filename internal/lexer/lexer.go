@@ -90,6 +90,10 @@ func newKeywords() map[string]TokenType {
 		"sic":    TokenSic,
 		"null":   TokenNull,
 
+		"of":     TokenOf,
+		"method": TokenMethod,
+		"self":   TokenSelf,
+
 		// Types
 		"I64":  TokenI64,
 		"I32":  TokenI32,
