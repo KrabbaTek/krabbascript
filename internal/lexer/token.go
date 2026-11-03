@@ -198,7 +198,6 @@ func (tt TokenType) String() string {
 		TokenAndAnd:        "&&",
 		TokenOrOr:          "||",
 
-		// Compiler stuff
 
 		// Compiler stuff
 		TokenLiteral:      "literal",
