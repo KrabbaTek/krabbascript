@@ -27,16 +27,34 @@ var formatCmd = &cobra.Command{
 	This should be done before compiling a KrabbaScript file.
 
 	If a directory is passed, then every KrabbaScript file within that directory will be formatted.
+
+
+	Examples:
+
+	krabbascript format denmark.ks
+
+	krabbascript format ./europe/
+
+
+	You're using the format command, 
+	but consider using the --format flag in the build command — 
+	it's a bit more convenient if you plan on compiling your formatted file.
+
+	You can read a bit more about the engine here:
+	https://github.com/KrabbaTek/krabbascript/blob/dev/DESIGN.md#formatter
 	`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// once again, this can be either a file or directory.
 		path := args[0]
 
+		// used to check if the path is a file or directory later on
 		stats, err := os.Stat(path)
 
 		if err != nil {
 			return err
 		}
 
+		// route to the correct formatter function based on whether the path type
 		if stats.IsDir() {
 			err = formatter.FormatDirectory(path)
 		} else {
