@@ -101,6 +101,12 @@ const (
 	TokenLessEq
 	TokenGreaterEq
 
+	TokenPercent
+	TokenAndAnd
+	TokenOrOr
+
+	// Compiler stuff
+
 	// Compiler stuff
 	TokenLiteral
 	TokenStrLiteral
@@ -189,6 +195,11 @@ func (tt TokenType) String() string {
 		TokenGreaterThan:   ">",
 		TokenLessEq:        "<=",
 		TokenGreaterEq:     ">=",
+		TokenPercent:       "%",
+		TokenAndAnd:        "&&",
+		TokenOrOr:          "||",
+
+		// Compiler stuff
 
 		// Compiler stuff
 		TokenLiteral:      "literal",
