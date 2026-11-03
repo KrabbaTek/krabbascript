@@ -106,7 +106,7 @@ func FormatDirectory(dir string) error {
 
 	// I just copied this from https://zetcode.com/golang/find-file/
 	// Don't hate the player, hate the game.
-	err := filepath.WalkDir("demo", func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 
 		if err != nil {
 			return err
