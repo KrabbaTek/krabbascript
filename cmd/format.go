@@ -20,7 +20,7 @@ import(
 var formatCmd = &cobra.Command{
 	Use: "format [file/directory]",
 	Short: "Run the formatter on a file or directory.",
-	Args: cobra.MinimumNArgs(1), // require a file to be passed
+	Args: cobra.ExactArgs(1), // require a file to be passed
 	DisableFlagsInUseLine: true, // format doesn't need any flags and this makes the usage message more accurate
 	Long: `
 	Run the ASI (Automatic Semicolon Insertion) engine on the given file or directory.

@@ -55,43 +55,45 @@ func insertSemicolons(lines []string) []string {
 	// the lines with semicolons we'll be returning.
 	var newLines []string
 
-	for _, line := range lines {
-		// keep the leading tabspace, only strip trailing whitespace
-		line = strings.TrimRight(line, " \t\r")
+	symbolsToIgnore := []string{"{", "}", "(", "[", ",", ":", "&&", "||", "+", "-", "*", "/", "%", ";"}
 
-		// ignore empty lines
-		if strings.TrimSpace(line) == "" {
-			newLines = append(newLines, line); continue
-		}
+	outer:
+		for _, line := range lines {
+			// keep the leading tabspace, only strip trailing whitespace
+			line = strings.TrimRight(line, " \t\r")
 
-		// string has a comment — this is mainly for inline comments
-		if strings.Contains(line, "#") {
-			// remove comment
-			// this is done to avoid the case where a line like this:
-			// print("I love Finland") # I really do!
-			// being formatted like:
-			// print("I love Finland") # I really do!;
-
-			// in the future we'll make an effort to preserve the comment but this is fine for now.
-			// We're making the mother of all omelettes here, Jack. Can't fret over every egg.
-			line = stripTrailingComment(line)
-		}
-
-		// if the line ends with any of these symbols, 
-		// then we don't need to add a semicolon.
-		// I'll admit that guy was right — this is much cleaner than a thousand || conditions.
-		symbolsToIgnore := []string{"{", "}", "(", "[", ",", ":", "&&", "||", "+", "-", "*", "/", "%"}
-
-		for _, symbol := range symbolsToIgnore {
-			if strings.HasSuffix(line, symbol) {
-				newLines = append(newLines, line); continue
+			// ignore empty lines
+			if strings.TrimSpace(line) == "" {
+				newLines = append(newLines, line)
+				continue
 			}
-		}
 
-		// otherwise, append semicolon
-		newLine := line + ";"
-		newLines = append(newLines, newLine)
-	}
+			// string has a comment — this is mainly for inline comments
+			if strings.Contains(line, "#") {
+				// remove comment
+				// this is done to avoid the case where a line like this:
+				// print("I love Finland") # I really do!
+				// being formatted like:
+				// print("I love Finland") # I really do!;
+
+				// in the future we'll make an effort to preserve the comment but this is fine for now.
+				// We're making the mother of all omelettes here, Jack. Can't fret over every egg.
+				line = stripTrailingComment(line)
+			}
+
+			// if the line ends with any of these symbols, 
+			// then we don't need to add a semicolon.
+			// I'll admit that guy was right — this is much cleaner than a thousand || conditions.
+			for _, symbol := range symbolsToIgnore {
+				if strings.HasSuffix(line, symbol) {
+					newLines = append(newLines, line)
+					continue outer
+				}
+			}
+
+			// otherwise, append semicolon
+			newLines = append(newLines, line+";")
+		}
 
 	return newLines
 }
