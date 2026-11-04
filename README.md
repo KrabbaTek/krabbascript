@@ -16,6 +16,7 @@ You can simply build the compiler by running `go build`
 ```bash
 go build
 ```
+build
 
 ## Syntax
 
