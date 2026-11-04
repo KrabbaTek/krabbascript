@@ -16,11 +16,12 @@ func _() {
 	_ = x[SymTableMethod-5]
 	_ = x[SymTableFunctionArg-6]
 	_ = x[SymTableMethodArg-7]
+	_ = x[SymTableStruct-8]
 }
 
-const _SymTableEntryType_name = "variable defvariable decvalue defimportfunctionmethodfunction argmethod arg"
+const _SymTableEntryType_name = "variable defvariable decvalue defimportfunctionmethodfunction argmethod argstruct"
 
-var _SymTableEntryType_index = [...]uint8{0, 12, 24, 33, 39, 47, 53, 65, 75}
+var _SymTableEntryType_index = [...]uint8{0, 12, 24, 33, 39, 47, 53, 65, 75, 81}
 
 func (i SymTableEntryType) String() string {
 	idx := int(i) - 0
