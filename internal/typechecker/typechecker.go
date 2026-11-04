@@ -99,6 +99,7 @@ func isExpression(t parser.NodeType) bool {
 	switch t {
 	case parser.NodeBinOp, parser.NodeUnary, parser.NodeNumLit, parser.NodeFloatLit,
 		parser.NodeNullLit,
+		parser.NodeBoolLit,
 		parser.NodeLit, parser.NodeStrLit, parser.NodeArray,
 		parser.NodePointer, parser.NodeIndex, parser.NodeFunctionCall,
 		parser.NodeListInit, parser.NodeAnonymousFunction:
@@ -247,6 +248,8 @@ func (tc *TypeChecker) infer(n *parser.Node) *Type {
 		return &Type{Kind: parser.NodeStrType}
 	case parser.NodeNullLit:
 		return &Type{Kind: parser.NodeNullLit}
+	case parser.NodeBoolLit:
+		return &Type{Kind: parser.NodeBoolType}
 	case parser.NodeLit:
 		return tc.inferIdentifier(n)
 	case parser.NodeBinOp:
