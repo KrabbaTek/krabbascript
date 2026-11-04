@@ -13,7 +13,11 @@ func testTokenSequence(t *testing.T, source string, expected []expectedToken) {
 	t.Helper()
 
 	l := NewLexerFromStr(source, "test")
-	tokens := l.Scan()
+	tokens, errors := l.Scan()
+
+	if len(errors) > 0 {
+		t.Fatalf("lexer reported %d errors", len(errors))
+	}
 
 	if len(tokens) != len(expected) {
 		t.Fatalf("token count mismatch: got %d tokens, want %d", len(tokens), len(expected))
@@ -158,7 +162,11 @@ func TestSymbolsAndOperators(t *testing.T) {
 		{"greater_than", ">", TokenGreaterThan},
 		{"less_eq", "<=", TokenLessEq},
 		{"greater_eq", ">=", TokenGreaterEq},
+		{"percent", "%", TokenPercent},
+		{"logical_and", "&&", TokenAndAnd},
+		{"logical_or", "||", TokenOrOr},
 	}
+	
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -226,4 +234,20 @@ func TestStringLiteral(t *testing.T) {
 	}
 
 	testTokenSequence(t, input, expected)
+}
+
+func TestLogicalOperatorsStayDistinct(t *testing.T) {
+	testTokenSequence(t, "a && b || c & d | e %", []expectedToken{
+		{TokenLiteral, "a"},
+		{TokenAndAnd, ""},
+		{TokenLiteral, "b"},
+		{TokenOrOr, ""},
+		{TokenLiteral, "c"},
+		{TokenBand, ""},
+		{TokenLiteral, "d"},
+		{TokenBor, ""},
+		{TokenLiteral, "e"},
+		{TokenPercent, ""},
+		{TokenEof, ""},
+	})
 }

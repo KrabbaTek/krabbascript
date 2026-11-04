@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
-
-	"github.com/fatih/color"
 )
 
 type Lexer struct {
@@ -19,8 +17,8 @@ type Lexer struct {
 	keywords map[string]TokenType
 	symbols  map[string]TokenType
 
-	buffer    bytes.Buffer
-	numErrors int
+	buffer bytes.Buffer
+	errors []error
 }
 
 func (l *Lexer) current() (byte, bool) {
@@ -133,6 +131,9 @@ func newSymbols() map[string]TokenType {
 		"&=": TokenBandEq,
 		"|=": TokenBorEq,
 		"^=": TokenBxorEq,
+		"%":  TokenPercent,
+		"&&": TokenAndAnd,
+		"||": TokenOrOr,
 		"->": TokenArrow,
 		",":  TokenComma,
 		";":  TokenSemi,
@@ -184,11 +185,13 @@ func NewLexerFromStr(src string, fName string) Lexer {
 	}
 }
 
-func (l *Lexer) GetErrors() int {
-	return l.numErrors
+func (l *Lexer) ReportError(startL int, startC int, msg string, a ...any) {
+	msg = fmt.Sprintf(msg, a...)
+	// Trim since some strings begin with a space already at the beginning
+	l.errors = append(l.errors, fmt.Errorf("%s:%d:%d: %s\n", l.file, startL, startC, strings.TrimSpace(msg)))
 }
 
-func (l *Lexer) Scan() []Token {
+func (l *Lexer) Scan() ([]Token, []error) {
 	var toks []Token
 	for {
 		c, ok := l.current()
@@ -277,8 +280,7 @@ func (l *Lexer) Scan() []Token {
 				f, err := strconv.ParseFloat(l.buffer.String(), 64)
 
 				if err != nil {
-					l.numErrors++
-					fmt.Printf("kscript: %s: %s:%d:%d: %v\n", color.RedString("error"), l.file, startL, startC, err)
+					l.ReportError(startL, startC, "%v", err)
 
 					l.buffer.Reset()
 				} else {
@@ -297,8 +299,7 @@ func (l *Lexer) Scan() []Token {
 				i, err := strconv.ParseInt(l.buffer.String(), 10, 64)
 
 				if err != nil {
-					l.numErrors++
-					fmt.Printf("kscript: error: %s:%d:%d: %v\n", l.file, startL, startC, err)
+					l.ReportError(startL, startC, "%v", err)
 
 					l.buffer.Reset()
 				} else {
@@ -368,11 +369,10 @@ func (l *Lexer) Scan() []Token {
 
 				c, ok := l.current()
 				if !ok || c != '"' {
-					l.numErrors++
 					if c != 0 {
-						fmt.Printf("kscript: %s: %s:%d:%d: expected \", got %s\n", color.RedString("error"), l.file, startL, startC, string(c))
+						l.ReportError(startL, startC, "expected \", got %s", string(c))
 					} else {
-						fmt.Printf("kscript: %s: %s:%d:%d: expected \", got <eof>\n", color.RedString("error"), l.file, startL, startC)
+						l.ReportError(startL, startC, "expected \", got <eof>")
 					}
 
 					continue
@@ -390,8 +390,7 @@ func (l *Lexer) Scan() []Token {
 				toks = append(toks, tok)
 				l.buffer.Reset()
 			} else {
-				l.numErrors++
-				fmt.Printf("kscript: %s: %s:%d:%d: unknown symbol %q\n", color.RedString("error"), l.file, startL, startC, oneChar)
+				l.ReportError(startL, startC, "unknown symbol %q", oneChar)
 
 				l.consume()
 			}
@@ -403,5 +402,5 @@ func (l *Lexer) Scan() []Token {
 		Column: l.column,
 		Type:   TokenEof,
 	})
-	return toks
+	return toks, l.errors
 }

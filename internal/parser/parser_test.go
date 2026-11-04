@@ -9,7 +9,13 @@ import (
 func TestListInitializer(t *testing.T) {
 	source := `var messages: Arr<Arr<Str>> = Arr<Arr<Str>>{ { "Krabbas", "are", "awesome!" }, { "I", "love", "KrabbaScript!" } };`
 	l := lexer.NewLexerFromStr(source, "test")
-	p := NewParser(l.Scan(), "test")
+
+	toks, errors := l.Scan()
+	if len(errors) > 0 {
+		t.Fatalf("lexer reported %d errors", len(errors))
+	}
+
+	p := NewParser(toks, "test")
 
 	ast, err := p.Parse()
 	if len(err) != 0 {

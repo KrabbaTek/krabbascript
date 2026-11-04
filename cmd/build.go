@@ -3,7 +3,9 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path"
 
+	"github.com/KrabbaTek/krabbascript/internal/importresolver"
 	"github.com/KrabbaTek/krabbascript/internal/lexer"
 	"github.com/KrabbaTek/krabbascript/internal/parser"
 	"github.com/KrabbaTek/krabbascript/internal/resolver"
@@ -60,33 +62,87 @@ var buildCmd = &cobra.Command{
 			return fmt.Errorf("building directories is not supported")
 		}
 
+		home, err := importresolver.GetKscriptHome()
+		if err != nil {
+			return err
+		}
+
+		err = os.MkdirAll(path.Join(home, "libs"), 0755)
+		if err != nil {
+			return err
+		}
+
 		l, _ := lexer.NewLexer(dir)
-		toks := l.Scan()
+		toks, errors := l.Scan()
 
-		// for _, tok := range toks {
-		// 	fmt.Println(tok)
-		// }
+		for _, err := range errors {
+			fmt.Printf("kscript: %s: %v\n", color.RedString("error"), err)
+		}
 
-		if errs := l.GetErrors(); errs != 0 {
+		if len(errors) == 1 {
 			fmt.Print("kscript: ")
 
 			color.Set(color.FgRed)
-			fmt.Printf("compilation failed with %d error(s)\n", errs)
+			fmt.Printf("compilation failed with %d error\n", len(errors))
+			color.Unset()
+
+			os.Exit(1)
+		}
+
+		if len(errors) > 0 {
+			fmt.Print("kscript: ")
+
+			color.Set(color.FgRed)
+			fmt.Printf("compilation failed with %d errors\n", len(errors))
 			color.Unset()
 
 			os.Exit(1)
 		}
 
 		p := parser.NewParser(toks, dir)
-		ast, errors := p.Parse()
+		ast, perrors := p.Parse()
 
-		for _, err := range errors {
+		for _, err := range perrors {
 			fmt.Printf("kscript: %s: %v\n", color.RedString("error"), err)
 		}
 
-		if len(errors) != 0 {
+		if len(perrors) == 1 {
+			fmt.Print("kscript: ")
+
 			color.Set(color.FgRed)
-			fmt.Printf("compilation failed with %d error(s)\n", len(errors))
+			fmt.Printf("compilation failed with %d error\n", len(perrors))
+			color.Unset()
+
+			os.Exit(1)
+		}
+		if len(perrors) > 0 {
+			color.Set(color.FgRed)
+			fmt.Printf("compilation failed with %d errors\n", len(perrors))
+			color.Unset()
+
+			os.Exit(1)
+		}
+
+		ires, err := importresolver.NewImportResolver(make([]string, 0))
+		if err != nil {
+			return err
+		}
+
+		irerrors := ires.ResolveLibs(ast)
+		for _, err := range irerrors {
+			fmt.Printf("kscript: %s: %v\n", color.RedString("error"), err)
+		}
+
+		if len(irerrors) == 1 {
+			color.Set(color.FgRed)
+			fmt.Printf("compilation failed with %d error\n", len(irerrors))
+			color.Unset()
+
+			os.Exit(1)
+		}
+		if len(irerrors) > 0 {
+			color.Set(color.FgRed)
+			fmt.Printf("compilation failed with %d errors\n", len(irerrors))
 			color.Unset()
 
 			os.Exit(1)
@@ -106,9 +162,17 @@ var buildCmd = &cobra.Command{
 			fmt.Printf("kscript: %s: %v\n", color.RedString("error"), err)
 		}
 
-		if len(rerrors) != 0 {
+		if len(rerrors) == 1 {
 			color.Set(color.FgRed)
-			fmt.Printf("compilation failed with %d error(s)\n", len(rerrors))
+			fmt.Printf("compilation failed with %d error\n", len(rerrors))
+			color.Unset()
+
+			os.Exit(1)
+		}
+
+		if len(rerrors) > 0 {
+			color.Set(color.FgRed)
+			fmt.Printf("compilation failed with %d errors\n", len(rerrors))
 			color.Unset()
 
 			os.Exit(1)
@@ -119,9 +183,17 @@ var buildCmd = &cobra.Command{
 		for _, err := range terrs {
 			fmt.Printf("kscript: %s: %v\n", color.RedString("error"), err)
 		}
-		if len(terrs) != 0 {
+
+		if len(terrs) == 1 {
 			color.Set(color.FgRed)
-			fmt.Printf("kscript: compilation failed with %d error(s)\n", len(terrs))
+			fmt.Printf("kscript: compilation failed with %d error\n", len(terrs))
+			color.Unset()
+
+			os.Exit(1)
+		}
+		if len(terrs) > 0 {
+			color.Set(color.FgRed)
+			fmt.Printf("kscript: compilation failed with %d errors\n", len(terrs))
 			color.Unset()
 
 			os.Exit(1)
