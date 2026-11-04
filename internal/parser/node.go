@@ -45,6 +45,7 @@ const (
 	NodeNumLit       // num lit
 	NodeFloatLit     // float lit
 	NodeNullLit      // null lit
+	NodeBoolLit      // bool lit
 	NodeLit          // lit
 	NodeStrLit       // str lit
 	NodeArray        // array

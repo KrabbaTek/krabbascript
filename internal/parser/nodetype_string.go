@@ -36,32 +36,33 @@ func _() {
 	_ = x[NodeNumLit-25]
 	_ = x[NodeFloatLit-26]
 	_ = x[NodeNullLit-27]
-	_ = x[NodeLit-28]
-	_ = x[NodeStrLit-29]
-	_ = x[NodeArray-30]
-	_ = x[NodePointer-31]
-	_ = x[NodeIndex-32]
-	_ = x[NodeFunctionCall-33]
-	_ = x[NodeI64Type-34]
-	_ = x[NodeI32Type-35]
-	_ = x[NodeI16Type-36]
-	_ = x[NodeI8Type-37]
-	_ = x[NodeU64Type-38]
-	_ = x[NodeU32Type-39]
-	_ = x[NodeU16Type-40]
-	_ = x[NodeU8Type-41]
-	_ = x[NodeF64Type-42]
-	_ = x[NodeF32Type-43]
-	_ = x[NodeStrType-44]
-	_ = x[NodeBoolType-45]
-	_ = x[NodeAnyType-46]
-	_ = x[NodeVoidType-47]
-	_ = x[NodeUnknownType-48]
+	_ = x[NodeBoolLit-28]
+	_ = x[NodeLit-29]
+	_ = x[NodeStrLit-30]
+	_ = x[NodeArray-31]
+	_ = x[NodePointer-32]
+	_ = x[NodeIndex-33]
+	_ = x[NodeFunctionCall-34]
+	_ = x[NodeI64Type-35]
+	_ = x[NodeI32Type-36]
+	_ = x[NodeI16Type-37]
+	_ = x[NodeI8Type-38]
+	_ = x[NodeU64Type-39]
+	_ = x[NodeU32Type-40]
+	_ = x[NodeU16Type-41]
+	_ = x[NodeU8Type-42]
+	_ = x[NodeF64Type-43]
+	_ = x[NodeF32Type-44]
+	_ = x[NodeStrType-45]
+	_ = x[NodeBoolType-46]
+	_ = x[NodeAnyType-47]
+	_ = x[NodeVoidType-48]
+	_ = x[NodeUnknownType-49]
 }
 
-const _NodeType_name = "variable defvariable decvalue defif statementelsif statementelse statementimport statementwhen statementmodule importmodulewhen armwhen else armscopelatersicreturnanonymous functionfield decstruct declist initfunction argfunctionrootbin opunarynum litfloat litnull litlitstr litarraypointerindexfunction callI64 typeI32 typeI16 typeI8 typeU64 typeU32 typeU16 typeU8 typeF64 typeF32 typeStr typeBool typeAny typevoid typeunknown type"
+const _NodeType_name = "variable defvariable decvalue defif statementelsif statementelse statementimport statementwhen statementmodule importmodulewhen armwhen else armscopelatersicreturnanonymous functionfield decstruct declist initfunction argfunctionrootbin opunarynum litfloat litnull litbool litlitstr litarraypointerindexfunction callI64 typeI32 typeI16 typeI8 typeU64 typeU32 typeU16 typeU8 typeF64 typeF32 typeStr typeBool typeAny typevoid typeunknown type"
 
-var _NodeType_index = [...]uint16{0, 12, 24, 33, 45, 60, 74, 90, 104, 117, 123, 131, 144, 149, 154, 157, 163, 181, 190, 200, 209, 221, 229, 233, 239, 244, 251, 260, 268, 271, 278, 283, 290, 295, 308, 316, 324, 332, 339, 347, 355, 363, 370, 378, 386, 394, 403, 411, 420, 432}
+var _NodeType_index = [...]uint16{0, 12, 24, 33, 45, 60, 74, 90, 104, 117, 123, 131, 144, 149, 154, 157, 163, 181, 190, 200, 209, 221, 229, 233, 239, 244, 251, 260, 268, 276, 279, 286, 291, 298, 303, 316, 324, 332, 340, 347, 355, 363, 371, 378, 386, 394, 402, 411, 419, 428, 440}
 
 func (i NodeType) String() string {
 	idx := int(i) - 0

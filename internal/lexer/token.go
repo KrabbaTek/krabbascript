@@ -28,6 +28,9 @@ const (
 	TokenSic
 	TokenDo
 	TokenNull
+	TokenTrue
+	TokenFalse
+
 
 	// Types
 	TokenBool
@@ -105,7 +108,6 @@ const (
 	TokenAndAnd
 	TokenOrOr
 
-
 	// Compiler stuff
 	TokenLiteral
 	TokenStrLiteral
@@ -140,6 +142,9 @@ func (tt TokenType) String() string {
 		TokenLater:  "later",
 		TokenSic:    "sic",
 		TokenNull:   "null",
+		TokenTrue:   "true",
+		TokenFalse:  "false",
+
 
 		// Types
 		TokenBool: "Bool",
@@ -197,7 +202,6 @@ func (tt TokenType) String() string {
 		TokenPercent:       "%",
 		TokenAndAnd:        "&&",
 		TokenOrOr:          "||",
-
 
 		// Compiler stuff
 		TokenLiteral:      "literal",

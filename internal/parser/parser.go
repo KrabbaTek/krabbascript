@@ -225,6 +225,8 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 		lexer.TokenMul,
 		lexer.TokenBand,
 		lexer.TokenNull,
+		lexer.TokenTrue,
+		lexer.TokenFalse,
 	)
 	var left *Node
 	if err != nil {
@@ -423,6 +425,13 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 
 		case lexer.TokenNull:
 			nodeType = NodeNullLit
+
+		case lexer.TokenTrue, lexer.TokenFalse:
+			nodeType = NodeBoolLit
+			// keywords carry no Value. so we can do whatever we want
+			// just kidding
+			// so take the lexeme from the token type
+			t.Value = t.Type.String()
 
 		default:
 			return nil, &ParserError{
