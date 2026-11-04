@@ -5,6 +5,8 @@ type Precedence int
 const (
 	PrecedenceNone Precedence = iota // Little trick to make precedences start with 1
 	PrecedenceAssignment
+	PrecedenceLogicalOr
+	PrecedenceLogicalAnd
 	PrecedenceComparison
 	PrecedenceBitwise
 	PrecedenceTerm
