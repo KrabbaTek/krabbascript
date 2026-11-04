@@ -16,7 +16,9 @@ const (
 
 	SymTableImport      // import
 	SymTableFunction    // function
+	SymTableMethod      // method
 	SymTableFunctionArg // function arg
+	SymTableMethodArg   // method arg
 )
 
 type SymTableEntry struct {

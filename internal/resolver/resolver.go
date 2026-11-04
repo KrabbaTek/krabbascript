@@ -340,6 +340,69 @@ func (r *Resolver) resolveFunction(function *parser.Node) *ResolverError {
 	return nil
 }
 
+func (r *Resolver) resolveMethod(method *parser.Node) *ResolverError {
+	// Could have called it meth
+	// Anyways get the method's NodeInfoMethod
+	met, ok := method.ExtraInfo.(*parser.NodeInfoMethod)
+	if !ok {
+		return &ResolverError{
+			What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of method to be a method", r.file,
+				method.Line, method.Column),
+			Fix: "this is a programming error",
+		}
+	}
+
+	// Look up if the method already exists on the same type
+	entry, ok := r.lookUp(method.Lexeme)
+
+	if ok {
+		// Get the entry's NodeInfoMethod
+		info, ok := entry.Ref.ExtraInfo.(*parser.NodeInfoMethod)
+		if !ok {
+			return &ResolverError{
+				What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of method to be a method", r.file,
+					method.Line, method.Column),
+				Fix: "this is a programming error",
+			}
+		}
+		// Check if they are for the same type
+		if info.OfType.Type == met.OfType.Type {
+			return &ResolverError{
+				What: fmt.Errorf("%s:%d:%d: redeclaration of %s at %s:%d:%d", r.file, method.Line, method.Column, method.Lexeme,
+					r.file, entry.Ref.Line, entry.Ref.Column),
+			}
+		}
+	}
+
+	// Create a new scope for the method
+	r.symTable = append(r.symTable, make(map[string]*SymTableEntry))
+
+	// Get the function's scope
+	scope := r.getCurrentScope()
+
+	// Loop over the args and add bring them to the scope
+	for _, arg := range met.Args {
+		scope[arg.Left.Lexeme] = &SymTableEntry{
+			Kind: SymTableMethodArg,
+			Type: arg.Right,
+			Ref:  arg,
+		}
+	}
+
+	r.walkBlock(met.Body)
+	r.popScope()
+
+	// Get the current scope
+	scope = r.getCurrentScope()
+	scope[method.Lexeme] = &SymTableEntry{
+		Kind: SymTableMethod,
+		Type: met.ReturnType, // The type here is the return type
+		Ref:  method,
+	}
+
+	return nil
+}
+
 func (r *Resolver) Walk(ast *parser.Node) ([]map[string]*SymTableEntry, []*ResolverError) {
 	// Validate that the root of the AST is actually a root type
 	if ast.Type != parser.NodeRoot {
@@ -421,6 +484,12 @@ func (r *Resolver) walkBlock(block *parser.Node) {
 
 		case parser.NodeFunction:
 			err := r.resolveFunction(el)
+			if err != nil {
+				r.errors = append(r.errors, err)
+			}
+
+		case parser.NodeMethod:
+			err := r.resolveMethod(el)
 			if err != nil {
 				r.errors = append(r.errors, err)
 			}

@@ -52,6 +52,7 @@ const (
 	NodeIndex        // index
 	NodeFunctionCall // function call
 	NodeMethod       // method
+	NodeSelf         // self
 
 	// Types
 	NodeI64Type // I64 type
