@@ -225,6 +225,7 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 		lexer.TokenMul,
 		lexer.TokenBand,
 		lexer.TokenNull,
+		lexer.TokenSelf,
 	)
 	var left *Node
 	if err != nil {
@@ -423,6 +424,8 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 
 		case lexer.TokenNull:
 			nodeType = NodeNullLit
+		case lexer.TokenSelf:
+			nodeType = NodeSelf
 
 		default:
 			return nil, &ParserError{
@@ -460,7 +463,7 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 		case lexer.TokenPlusPlus, lexer.TokenMinusMinus:
 			p.consumeToks(s)
 
-			if left.Lexeme != lexer.TokenDot.String() && left.Type != NodeIndex && left.Type != NodeLit {
+			if left.Lexeme != lexer.TokenDot.String() && left.Type != NodeIndex && left.Type != NodeLit && left.Type != NodeSelf {
 				return nil, &ParserError{
 					What: fmt.Errorf(
 						"%s:%d:%d: cannot apply '%s' to a non-assignable expression",
