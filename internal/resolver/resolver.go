@@ -403,6 +403,18 @@ func (r *Resolver) resolveMethod(method *parser.Node) *ResolverError {
 	return nil
 }
 
+// func (r *Resolver) resolveStruct(ksStruct *parser.Node) *ResolverError {
+// 	// Get the struct's NodeInfoMethod
+// 	met, ok := method.ExtraInfo.(*parser.NodeInfoMethod)
+// 	if !ok {
+// 		return &ResolverError{
+// 			What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of method to be a method", r.file,
+// 				method.Line, method.Column),
+// 			Fix: "this is a programming error",
+// 		}
+// 	}
+// }
+
 func (r *Resolver) Walk(ast *parser.Node) ([]map[string]*SymTableEntry, []*ResolverError) {
 	// Validate that the root of the AST is actually a root type
 	if ast.Type != parser.NodeRoot {
