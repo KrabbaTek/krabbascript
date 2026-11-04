@@ -139,10 +139,11 @@ func (r *Resolver) resolveImport(modImport *parser.Node) *ResolverError {
 	module := modImport.Right
 
 	// Check if the module is already imported
-	_, ok := r.lookUp(module.Lexeme)
+	entry, ok := r.lookUp(module.Lexeme)
 	if ok {
 		return &ResolverError{
-			What: fmt.Errorf("%s:%d:%d: reimport of '%s'", r.file, modImport.Line, modImport.Column, module.Lexeme),
+			What: fmt.Errorf("%s:%d:%d: reimport of '%s' at %s:%d:%d", r.file, modImport.Line, modImport.Column, module.Lexeme,
+				r.file, entry.Ref.Line, entry.Ref.Column),
 		}
 	}
 
@@ -304,10 +305,11 @@ func (r *Resolver) resolveFunction(function *parser.Node) *ResolverError {
 	}
 
 	// Look up if the function already exists
-	_, ok = r.lookUp(function.Lexeme)
+	entry, ok := r.lookUp(function.Lexeme)
 	if ok {
 		return &ResolverError{
-			What: fmt.Errorf("%s:%d:%d: redeclaration of %s", r.file, function.Line, function.Column, function.Lexeme),
+			What: fmt.Errorf("%s:%d:%d: redeclaration of %s at %s:%d:%d", r.file, function.Line, function.Column, function.Lexeme,
+				r.file, entry.Ref.Line, entry.Ref.Column),
 		}
 	}
 
@@ -403,17 +405,27 @@ func (r *Resolver) resolveMethod(method *parser.Node) *ResolverError {
 	return nil
 }
 
-// func (r *Resolver) resolveStruct(ksStruct *parser.Node) *ResolverError {
-// 	// Get the struct's NodeInfoMethod
-// 	met, ok := method.ExtraInfo.(*parser.NodeInfoMethod)
-// 	if !ok {
-// 		return &ResolverError{
-// 			What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of method to be a method", r.file,
-// 				method.Line, method.Column),
-// 			Fix: "this is a programming error",
-// 		}
-// 	}
-// }
+func (r *Resolver) resolveStruct(ksStruct *parser.Node) *ResolverError {
+	// We don't really care about the struct's fields right now.
+	// Check if the struct is already defined
+
+	entry, ok := r.lookUp(ksStruct.Lexeme)
+	if ok {
+		return &ResolverError{
+			What: fmt.Errorf("%s:%d:%d: redeclaration of %s at %s:%d:%d", r.file, ksStruct.Line, ksStruct.Column,
+				ksStruct.Lexeme, r.file, entry.Ref.Line, entry.Ref.Column),
+		}
+	}
+
+	// Get the current scope
+	scope := r.getCurrentScope()
+	scope[ksStruct.Lexeme] = &SymTableEntry{
+		Kind: SymTableStruct,
+		Ref:  ksStruct,
+	}
+
+	return nil
+}
 
 func (r *Resolver) Walk(ast *parser.Node) ([]map[string]*SymTableEntry, []*ResolverError) {
 	// Validate that the root of the AST is actually a root type
@@ -502,6 +514,12 @@ func (r *Resolver) walkBlock(block *parser.Node) {
 
 		case parser.NodeMethod:
 			err := r.resolveMethod(el)
+			if err != nil {
+				r.errors = append(r.errors, err)
+			}
+
+		case parser.NodeStructDec:
+			err := r.resolveStruct(el)
 			if err != nil {
 				r.errors = append(r.errors, err)
 			}
