@@ -51,6 +51,8 @@ const (
 	NodePointer      // pointer
 	NodeIndex        // index
 	NodeFunctionCall // function call
+	NodeMethod       // method
+	NodeSelf         // self
 
 	// Types
 	NodeI64Type // I64 type
@@ -96,6 +98,13 @@ type NodeInfoFunction struct {
 	Body       *Node
 }
 
+type NodeInfoMethod struct {
+	Args       []*Node
+	ReturnType *Node
+	Body       *Node
+	OfType     *Node
+}
+
 type NodeInfoFunctionCall struct {
 	Args   []*Node
 	Callee *Node
@@ -131,6 +140,23 @@ func (n *Node) PrintWithDepth(depth int) {
 
 			fmt.Printf("%s   return:\n", offset)
 			info.ReturnType.PrintWithDepth(depth + 2)
+
+			fmt.Printf("%s   body:\n", offset)
+			info.Body.PrintWithDepth(depth + 2)
+
+			fmt.Printf("%s   args:\n", offset)
+			for i, arg := range info.Args {
+				fmt.Printf("%s      [%d]:\n", offset, i)
+				arg.PrintWithDepth(depth + 3)
+			}
+		case *NodeInfoMethod:
+			fmt.Println(" -> method:")
+
+			fmt.Printf("%s   return:\n", offset)
+			info.ReturnType.PrintWithDepth(depth + 2)
+
+			fmt.Printf("%s   of type:\n", offset)
+			info.OfType.PrintWithDepth(depth + 2)
 
 			fmt.Printf("%s   body:\n", offset)
 			info.Body.PrintWithDepth(depth + 2)

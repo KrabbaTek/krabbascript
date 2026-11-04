@@ -225,6 +225,7 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 		lexer.TokenMul,
 		lexer.TokenBand,
 		lexer.TokenNull,
+		lexer.TokenSelf,
 	)
 	var left *Node
 	if err != nil {
@@ -423,6 +424,8 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 
 		case lexer.TokenNull:
 			nodeType = NodeNullLit
+		case lexer.TokenSelf:
+			nodeType = NodeSelf
 
 		default:
 			return nil, &ParserError{
@@ -460,7 +463,7 @@ func (p *Parser) parseExpressionWithMinBpToks(s *TokenStream, minBp int, allowLi
 		case lexer.TokenPlusPlus, lexer.TokenMinusMinus:
 			p.consumeToks(s)
 
-			if left.Lexeme != lexer.TokenDot.String() && left.Type != NodeIndex && left.Type != NodeLit {
+			if left.Lexeme != lexer.TokenDot.String() && left.Type != NodeIndex && left.Type != NodeLit && left.Type != NodeSelf {
 				return nil, &ParserError{
 					What: fmt.Errorf(
 						"%s:%d:%d: cannot apply '%s' to a non-assignable expression",
@@ -2071,6 +2074,153 @@ func (p *Parser) parseModuleToks(s *TokenStream) (*Node, *ParserError) {
 	}, nil
 }
 
+func (p *Parser) parseMethodToks(s *TokenStream) (*Node, *ParserError) {
+	start := p.consumeToks(s)
+
+	// Methods can be like:
+	// method bump() of I32 {
+	//    self++;
+	// }
+
+	// Or they can also take in args and return values
+	// method str(fun_arg: Str) of I32 -> Str {
+	//    # Do stuff
+	// }
+
+	// Methods cannot be a declaration
+
+	err := p.expectToks(s, lexer.TokenLiteral)
+	if err != nil {
+		return nil, err
+	}
+
+	name := p.consumeToks(s)
+	err = p.skipToks(s, lexer.TokenOpenParen)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Collect everything in the parentheses and pass them off to parseFunctionArgsToks
+	var toks []lexer.Token
+
+	for {
+		t := p.currentToks(s)
+		if t.Type == lexer.TokenEof || t.Type == lexer.TokenClosedParen {
+			break
+		}
+
+		toks = append(toks, t)
+		p.consumeToks(s)
+	}
+
+	// We do expect here instead of skip since if there are no args, we will use this as an EOF token
+	err = p.expectToks(s, lexer.TokenClosedParen)
+	if err != nil {
+		return nil, err
+	}
+
+	argsEnd := p.consumeToks(s)
+
+	// Add an EOF token to the args since every Toks function operates on a EOF'ed stream
+	if len(toks) == 0 {
+		toks = append(toks, lexer.Token{
+			Line:   argsEnd.Line,
+			Column: argsEnd.Column,
+			Type:   lexer.TokenEof,
+		})
+	} else {
+		// Get the last element and use it as an EOF
+		last := toks[len(toks)-1]
+		toks = append(toks, lexer.Token{
+			Line:   last.Line,
+			Column: last.Column,
+			Type:   lexer.TokenEof,
+		})
+	}
+
+	// Create a stream
+	stream := TokenStream{
+		toks: toks,
+		pos:  0,
+	}
+
+	args, err := p.parseFunctionArgsToks(&stream)
+	if err != nil {
+		return nil, err
+	}
+
+	// Skip the of keyword
+	err = p.skipToks(s, lexer.TokenOf)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the type and convert it
+	nType, cerr := p.convertType(s)
+	if cerr != nil {
+		return nil, &ParserError{
+			What: cerr,
+		}
+	}
+
+	// A method can return something and have an arrow with the type (-> Arr<Str>) or don't return anything
+	err = p.expectToks(s, lexer.TokenArrow, lexer.TokenOpenBrack)
+	if err != nil {
+		return nil, err
+	}
+
+	arrowOrScope := p.currentToks(s)
+	if arrowOrScope.Type == lexer.TokenArrow {
+		// method test of type -> type { ... }
+		// Skip the arrow
+		p.consumeToks(s)
+
+		// Get the return type
+		ret, cerr := p.convertType(s)
+		if cerr != nil {
+			return nil, &ParserError{
+				What: cerr,
+			}
+		}
+
+		body, _ := p.parseScopeToks(s)
+
+		methodInfo := NodeInfoMethod{
+			Body:       body,
+			ReturnType: ret,
+			OfType:     nType,
+			Args:       args,
+		}
+
+		return &Node{
+			Line:      start.Line,
+			Column:    start.Column,
+			Type:      NodeMethod,
+			ExtraInfo: &methodInfo,
+			Lexeme:    name.Value,
+		}, nil
+	} else {
+		// method test of type { ... }
+
+		body, _ := p.parseScopeToks(s)
+
+		methodInfo := NodeInfoMethod{
+			Body:   body,
+			OfType: nType,
+			Args:   args,
+		}
+
+		return &Node{
+			Line:      start.Line,
+			Column:    start.Column,
+			Type:      NodeMethod,
+			ExtraInfo: &methodInfo,
+			Lexeme:    name.Value,
+		}, nil
+	}
+}
+
 func (p *Parser) appendToBlock(block *Node, node *Node) {
 	switch v := block.ExtraInfo.(type) {
 	case *NodeInfoBlock:
@@ -2241,6 +2391,14 @@ loop:
 			}
 		case lexer.TokenMod:
 			n, err := p.parseModuleToks(s)
+			if err != nil {
+				p.errors = append(p.errors, *err)
+				p.sync(s)
+			} else {
+				p.appendToBlock(ast, n)
+			}
+		case lexer.TokenMethod:
+			n, err := p.parseMethodToks(s)
 			if err != nil {
 				p.errors = append(p.errors, *err)
 				p.sync(s)

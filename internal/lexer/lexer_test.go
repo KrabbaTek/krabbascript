@@ -76,6 +76,9 @@ func TestKeywords(t *testing.T) {
 		{"do", "do", TokenDo},
 		{"sic", "sic", TokenSic},
 		{"null", "null", TokenNull},
+		{"self", "self", TokenSelf},
+		{"of", "of", TokenOf},
+		{"method", "method", TokenMethod},
 	}
 
 	for _, tt := range tests {
@@ -166,7 +169,6 @@ func TestSymbolsAndOperators(t *testing.T) {
 		{"logical_and", "&&", TokenAndAnd},
 		{"logical_or", "||", TokenOrOr},
 	}
-	
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
