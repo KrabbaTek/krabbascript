@@ -19,6 +19,8 @@ const (
 	SymTableMethod      // method
 	SymTableFunctionArg // function arg
 	SymTableMethodArg   // method arg
+
+	SymTableStruct // struct
 )
 
 type SymTableEntry struct {

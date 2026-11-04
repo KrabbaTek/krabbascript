@@ -1065,17 +1065,15 @@ func (p *Parser) parseStructScopeToks(s *TokenStream) (*Node, *ParserError) {
 			break
 		}
 
-		toks = append(toks, t)
+		if t.Type != lexer.TokenEol {
+			toks = append(toks, t)
+		}
 		p.consumeToks(s)
 	}
 
 	err = p.skipToks(s, lexer.TokenClosedBrack)
 	if err != nil {
 		return nil, err
-	}
-
-	for _, t := range toks {
-		fmt.Println(t)
 	}
 
 	if len(toks) != 0 {
