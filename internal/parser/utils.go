@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/KrabbaTek/krabbascript/internal/lexer"
+
+	"slices"
 )
 
 func (p *Parser) currentToks(s *TokenStream) lexer.Token {
@@ -71,6 +73,15 @@ func (p *Parser) expectToks(s *TokenStream, types ...lexer.TokenType) *ParserErr
 	for i, tt := range types {
 		expected[i] = fmt.Sprintf("'%s'", tt)
 	}
+
+	// missing semicolon
+	if slices.Contains(types, lexer.TokenSemi) {
+        return &ParserError{
+			What: fmt.Errorf("%s:%d:%d: expected a semicolon but either found none or found an arbitrary value instead.",
+				p.file, t.Line, t.Column),
+			Fix: fmt.Sprintf("You forgot to terminate line %d with a semicolon — add a semicolon at the end of the line.", t.Line),
+		}
+    }
 
 	return &ParserError{
 		What: fmt.Errorf("%s:%d:%d: expected %s, got '%s'",
