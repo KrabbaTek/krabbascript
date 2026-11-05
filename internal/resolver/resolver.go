@@ -352,9 +352,7 @@ func (r *Resolver) resolveMethod(method *parser.Node) *ResolverError {
 		}
 	}
 
-	// Methods are stored under "<receiver type>.<name>" so the same name can
-	// exist on different types. A '.' can't appear in an identifier, so these
-	// keys can never collide with variables or functions.
+
 	key := typeString(met.OfType) + "." + method.Lexeme
 
 	entry, ok := r.lookUp(key)
