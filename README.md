@@ -8,12 +8,13 @@ KrabbaScript is a simple yet powerful programming language, taking inspiration f
 It is compiled, statically typed and type-safe, requiring a type for every variable declaration.
 
 > [!CAUTION]
-> This project is still W.I.P and some stuff are not finished. Check out our [Discord](https://discord.gg/MQT4YgEYvn) for news and updates
+> This project is still W.I.P and some features are not finished. Check out our [Discord](https://discord.gg/MQT4YgEYvn) for the latest news and updates
 
 ## Getting started
 
 ## Building the project
-You can simply build the compiler by running `go build`
+
+You can build the compiler by running `go build` in the `krabbascript/` directory:
 
 ```bash
 go build
@@ -23,7 +24,7 @@ Then, you can run the program by invoking `./krabbascript`.
 
 ## Syntax
 
-This is a brief overview of the docs, so don't expect an in-depth explanation with jargon and whatnot, but you'll get a sense of Krabbascript's style. Let's begin!
+This is just a brief overview of the syntax, so don't expect an in-depth explanation with jargon and whatnot, but you'll get a sense of Krabbascript's style. Let's begin!
 
 But first, a quick tangent into semicolons:
 
@@ -31,7 +32,7 @@ Technically, KrabbaScript requires them, but you can write your code without the
 
 You can also use the standalone `format` command which will only format your file.
 
-My examples will be using them to avoid any confusion, but remember that they aren't required.
+My examples will be using them to avoid any confusion, but remember that they aren't required, so don't let semicolons be a detterence for you.
 
 ### Variables
 
@@ -165,6 +166,8 @@ Krabbascript provides 13 types. Remember that all types are capitalized like nou
 - Bool
 - F64
 - F32
+
+Note: while `Bool` is capitalized, you still use normal `true` and `false` — they aren't capitalized like in Python.
 
 ### Structs
 
