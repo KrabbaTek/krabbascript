@@ -363,7 +363,7 @@ func (r *Resolver) resolveMethod(method *parser.Node) *ResolverError {
 		}
 	}
 
-	// Create a new scope for the method
+	// Create a new scope for the method.
 	r.symTable = append(r.symTable, make(map[string]*SymTableEntry))
 
 	// Get the method's scope
