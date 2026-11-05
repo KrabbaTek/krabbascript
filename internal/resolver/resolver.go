@@ -343,8 +343,6 @@ func (r *Resolver) resolveFunction(function *parser.Node) *ResolverError {
 }
 
 func (r *Resolver) resolveMethod(method *parser.Node) *ResolverError {
-	// Could have called it meth
-	// Anyways get the method's NodeInfoMethod
 	met, ok := method.ExtraInfo.(*parser.NodeInfoMethod)
 	if !ok {
 		return &ResolverError{
@@ -354,35 +352,26 @@ func (r *Resolver) resolveMethod(method *parser.Node) *ResolverError {
 		}
 	}
 
-	// Look up if the method already exists on the same type
-	entry, ok := r.lookUp(method.Lexeme)
+	// Methods are stored under "<receiver type>.<name>" so the same name can
+	// exist on different types. A '.' can't appear in an identifier, so these
+	// keys can never collide with variables or functions.
+	key := typeString(met.OfType) + "." + method.Lexeme
 
+	entry, ok := r.lookUp(key)
 	if ok {
-		// Get the entry's NodeInfoMethod
-		info, ok := entry.Ref.ExtraInfo.(*parser.NodeInfoMethod)
-		if !ok {
-			return &ResolverError{
-				What: fmt.Errorf("%s:%d:%d: expected the ExtraInfo of method to be a method", r.file,
-					method.Line, method.Column),
-				Fix: "this is a programming error",
-			}
-		}
-		// Check if they are for the same type
-		if info.OfType.Type == met.OfType.Type {
-			return &ResolverError{
-				What: fmt.Errorf("%s:%d:%d: redeclaration of %s at %s:%d:%d", r.file, method.Line, method.Column, method.Lexeme,
-					r.file, entry.Ref.Line, entry.Ref.Column),
-			}
+		return &ResolverError{
+			What: fmt.Errorf("%s:%d:%d: redeclaration of method %s on %s at %s:%d:%d", r.file, method.Line, method.Column,
+				method.Lexeme, typeString(met.OfType), r.file, entry.Ref.Line, entry.Ref.Column),
 		}
 	}
 
 	// Create a new scope for the method
 	r.symTable = append(r.symTable, make(map[string]*SymTableEntry))
 
-	// Get the function's scope
+	// Get the method's scope
 	scope := r.getCurrentScope()
 
-	// Loop over the args and add bring them to the scope
+	// Loop over the args and bring them into the scope
 	for _, arg := range met.Args {
 		scope[arg.Left.Lexeme] = &SymTableEntry{
 			Kind: SymTableMethodArg,
@@ -394,9 +383,9 @@ func (r *Resolver) resolveMethod(method *parser.Node) *ResolverError {
 	r.walkBlock(met.Body)
 	r.popScope()
 
-	// Get the current scope
+	// Register the method under its qualified key
 	scope = r.getCurrentScope()
-	scope[method.Lexeme] = &SymTableEntry{
+	scope[key] = &SymTableEntry{
 		Kind: SymTableMethod,
 		Type: met.ReturnType, // The type here is the return type
 		Ref:  method,
