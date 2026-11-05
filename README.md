@@ -19,7 +19,6 @@ You can build the compiler by running `go build` in the `krabbascript/` director
 ```bash
 go build
 ```
-build
 
 Then, you can run the program by invoking `./krabbascript`.
 
