@@ -99,6 +99,20 @@ Lexer -->|Tokens| Parser -->|AST| Resolver -->|Symbol table| IR["Import Resolver
 Check out [DESIGN.md](DESIGN.md) for more info.
 
 ## Workflow
+
+Before you start work, there's something you need to understand: every change is associated with a Fizzy card,
+and if your changes are not associated with one then they will be rejected.
+
+This is to maintain a sense of auditability with our codebase as opposed to it being the wild west.
+
+You can join the Fizzy by first joining the [discord](https://discord.gg/dSB37tSDre) and then clicking the link in the announcements channel.
+
+Submitting an issue is not a replacement for a Fizzy card, 
+but if you want to avoid the hassle of making a Fizzy card then you can submit an issue and one of the contributors
+can do it on your behalf.
+
+Back to the workflow:
+
 1. Fork the repo
 2. Create a new branch for your feature/fix with:
    ```bash
