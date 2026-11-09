@@ -35,7 +35,7 @@ then
         echo "KrabbaScript was installed, but it has not yet been added to your PATH."
         read -p "Would you like to add ~/go/bin to your PATH? [Y/n] ~> " path_answer
 
-        if [[ "$path_answer" == "y" || -z "$input" ]]
+        if [[ "{$path_answer,,}" == "y" || -z "$input" ]]
         then
             # find the correct config file
             for RC_FILE in "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.profile"
@@ -62,7 +62,7 @@ then
     echo "This will store any libraries installed from Cranium or anywhere else."
     read -p "You should skip this if you don't plan on using any external libraries, otherwise I recommend creating it. [Y/n] ~> " input
 
-    if [[ "$input" == "y" || -z "$input" ]]
+    if [[ "{$input,,}" == "y" || -z "$input" ]]
     then
         mkdir -p ~/".kscript/libs"
 
@@ -89,12 +89,10 @@ then
     # lol that's a stupid excuse — this is stupid and theres no way of justifying it.
     read -p "Would you like to install Cranium? [P]lain version. | [O]ff the Grid version | [N]o, don't install Cranium ~> " installation
 
-    # I'll fix this to be case-insensitive later
-
-    if [[ "$installation" == "p" ]] # normal Cranium
+    if [[ "{$installation,,}" == "p" ]] # normal Cranium
     then
         echo "placeholder — plain"
-    elif [[ "$installation" == "o" ]] # off the grid
+    elif [[ "{$installation,,}" == "o" ]] # off the grid
     then
         echo "placeholder — off the grid"
     fi
