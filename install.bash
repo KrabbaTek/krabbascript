@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 
 # In short, this script will install the KrabbaScript compiler from https://github.com/KrabbaTek/krabbascript
 # It will do the following things:
@@ -17,7 +19,8 @@ then
 fi
 
 # install KrabbaScript if not already installed
-if ! command -v krabbascript >/dev/null 2>&1
+# note: this check (somehow) does not work, but it's not the end of the world.
+if ! krabbascript >/dev/null 2>&1
 then
     # I might want to pipe the output of this into /dev/null
     go install github.com/KrabbaTek/krabbascript@latest
@@ -31,11 +34,15 @@ then
 
 
     # add ~/go/bin to PATH unless it's already there
+    # todo: fix this to check for other shells
     if ! grep -qs 'go/bin' ~/.zshrc; then
         echo "KrabbaScript was installed, but it has not yet been added to your PATH."
         read -p "Would you like to add ~/go/bin to your PATH? [Y/n] ~> " path_answer
 
-        if [[ "{$path_answer,,}" == "y" || -z "$input" ]]
+
+        # downcase the input
+        path_answer=$(echo "$path_answer" | tr '[:upper:]' '[:lower:]')
+        if [[ "$path_answer" == "y" || -z "$input" ]]
         then
             # find the correct config file
             for RC_FILE in "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.profile"
@@ -62,7 +69,8 @@ then
     echo "This will store any libraries installed from Cranium or anywhere else."
     read -p "You should skip this if you don't plan on using any external libraries, otherwise I recommend creating it. [Y/n] ~> " input
 
-    if [[ "{$input,,}" == "y" || -z "$input" ]]
+    input=$(echo "$input" | tr '[:upper:]' '[:lower:]')
+    if [[ "$input" == "y" || -z "$input" ]]
     then
         mkdir -p ~/".kscript/libs"
 
@@ -76,26 +84,13 @@ then
     fi
 fi
 
+
 # check if Cranium is installed, and don't prompt them if it is
 if ! command -v cranium >/dev/null 2>&1
 then
-    echo $'\n\nYou don\'t have Cranium installed.'
-    echo "Cranium is a package manager for KrabbaScript"
-    echo "You can also install the Off the Grid version, which is a purely local package manager."
-    
-    echo "You can read more at https://github.com/KrabbaTek/Cranium-cli and https://github.com/KrabbaTek/Cranium-off-the-grid respectively."
-
-    # this is the stupidest system I've designed in my entire life, but this is a pretty tight constraint.
-    # lol that's a stupid excuse — this is stupid and theres no way of justifying it.
-    read -p "Would you like to install Cranium? [P]lain version. | [O]ff the Grid version | [N]o, don't install Cranium ~> " installation
-
-    if [[ "{$installation,,}" == "p" ]] # normal Cranium
-    then
-        echo "placeholder — plain"
-    elif [[ "{$installation,,}" == "o" ]] # off the grid
-    then
-        echo "placeholder — off the grid"
-    fi
+    echo "You might want to consider installing Cranium — the package manager for KrabbaScript."
+    echo "More information — and an install script — for Cranium can be found here: https://github.com/KrabbaTek/Cranium-cli"
+    echo "If you want a purely local version, then check out Cranium Off the Grid here: https://github.com/KrabbaTek/Cranium-off-the-grid"
 fi
 
-
+echo "Kiitos paljon, hei hei!"
