@@ -19,8 +19,9 @@ then
 fi
 
 # install KrabbaScript if not already installed
-# note: this check (somehow) does not work, but it's not the end of the world.
-if ! krabbascript >/dev/null 2>&1
+# somehow this check doesn't work.
+# I'm keeping it nevertheless because it could work on somebody else's machine
+if ! command -v krabbascript >/dev/null 2>&1
 then
     # I might want to pipe the output of this into /dev/null
     go install github.com/KrabbaTek/krabbascript@latest
