@@ -8,7 +8,13 @@
 # - prompt you to install Cranium (the KrabbaScript package manager — more information can be found here: https://github.com/KrabbaTek/Cranium-cli)
 
 # To get and run this script in a pretentious one-liner, run:
-# curl -fsSL https://raw.githubusercontent.com/Centurion774477/krabbascript/refs/heads/dev/install.bash | bash
+# /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Centurion774477/krabbascript/refs/heads/dev/install.bash)"
+
+# You could also do this if you don't mind the verbosity:
+# curl -fsSL https://raw.githubusercontent.com/Centurion774477/krabbascript/refs/heads/dev/install.bash | install.bash
+# bash install.bash
+
+# This will save the script as install.bash, and then run that script via Bash.
 
 # Written by Reece Turner
 
