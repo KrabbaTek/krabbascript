@@ -71,18 +71,24 @@ func newKeywords() map[string]TokenType {
 		// Keywords
 		"var":    TokenVar,
 		"val":    TokenVal,
+
 		"func":   TokenFunc,
 		"mod":    TokenMod,
 		"return": TokenReturn,
+
 		"if":     TokenIf,
 		"elsif":  TokenElsif,
 		"else":   TokenElse,
+
 		"while":  TokenWhile,
 		"for":    TokenFor,
 		"loop":   TokenLoop,
 		"repeat": TokenRepeat,
 		"until":  TokenUntil,
 		"when":   TokenWhen,
+		"times":  TokenTimes,
+		"in":     TokenIn,
+
 		"struct": TokenStruct,
 		"import": TokenImport,
 		"do":     TokenDo,

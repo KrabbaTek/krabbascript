@@ -12,16 +12,22 @@ const (
 	TokenMod
 	TokenReturn
 
+	// conditionals
 	TokenIf
 	TokenElsif
 	TokenElse
 
+	TokenWhen
+
+	// loops
 	TokenWhile
 	TokenFor
 	TokenLoop
 	TokenRepeat
 	TokenUntil
-	TokenWhen
+	TokenTimes
+	TokenIn
+
 	TokenStruct
 	TokenImport
 	TokenLater
@@ -128,14 +134,19 @@ func (tt TokenType) String() string {
 		TokenFunc:   "func",
 		TokenMod:    "mod",
 		TokenReturn: "return",
+
 		TokenIf:     "if",
 		TokenElsif:  "elsif",
 		TokenElse:   "else",
+
 		TokenWhile:  "while",
 		TokenFor:    "for",
 		TokenLoop:   "loop",
 		TokenRepeat: "repeat",
 		TokenUntil:  "until",
+		TokenTimes:  "times",
+		TokenIn:     "in",
+
 		TokenWhen:   "when",
 		TokenStruct: "struct",
 		TokenImport: "import",
