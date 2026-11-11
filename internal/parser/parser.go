@@ -2395,6 +2395,14 @@ loop:
 			} else {
 				p.appendToBlock(ast, n)
 			}
+		case lexer.TokenFor:
+			n, err := p.parseForToks(s)
+			if err != nil {
+				p.errors = append(p.errors, *err)
+				p.sync(s)
+			} else {
+				p.appendToBlock(ast, n)
+			}
 		case lexer.TokenStruct:
 			n, err := p.parseStructToks(s)
 			if err != nil {
