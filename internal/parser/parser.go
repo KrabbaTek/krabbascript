@@ -1374,9 +1374,10 @@ func (p *Parser) parseImportToks(s *TokenStream) (*Node, *ParserError) {
 // for loops can be called two ways — with or without an index variable.
 // a for loop without the index will look like:
 // for 1704 times ...
-// 
+//
 // With an index, it would look like:
 // for 1704 times (index) ...
+// todo: add custom error messages
 func (p *Parser) parseForToks(s *TokenStream) (*Node, *ParserError) {
 	start := p.consumeToks(s)
 
@@ -1421,13 +1422,13 @@ func (p *Parser) parseForToks(s *TokenStream) (*Node, *ParserError) {
 	}
 
 	node := Node{
-		Line: start.Line,
+		Line:   start.Line,
 		Column: start.Column,
 
 		Type: NodeForLoop,
 		ExtraInfo: &NodeInfoForLoop{
-			Count: count,
-			Body: body,
+			Count:    count,
+			Body:     body,
 			IndexVar: indexVar,
 		},
 	}
