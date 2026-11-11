@@ -1371,6 +1371,71 @@ func (p *Parser) parseImportToks(s *TokenStream) (*Node, *ParserError) {
 	return &node, nil
 }
 
+// for loops can be called two ways — with or without an index variable.
+// a for loop without the index will look like:
+// for 1704 times ...
+//
+// With an index, it would look like:
+// for 1704 times (index) ...
+// todo: add custom error messages
+func (p *Parser) parseForToks(s *TokenStream) (*Node, *ParserError) {
+	start := p.consumeToks(s)
+
+	// My examples use raw numbers, but you can also use expressions:
+	// for get_count! times ...
+	count, err := p.parseExpressionWithMinBpToks(s, 0, false, false)
+	if err != nil {
+		return nil, err
+	}
+
+	// expect 'times'
+	err = p.skipToks(s, lexer.TokenTimes)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// back to the fork in the road:
+	// now we need to figure out if the user pulled down an index variable or if they didn't
+	var indexVar string
+
+	if p.currentToks(s).Type == lexer.TokenOpenParen {
+		p.consumeToks(s)
+
+		err = p.expectToks(s, lexer.TokenLiteral)
+		if err != nil {
+			return nil, err
+		}
+
+		indexVar = p.consumeToks(s).Value
+
+		err = p.skipToks(s, lexer.TokenClosedParen)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	body, err := p.parseScopeToks(s)
+
+	if err != nil {
+		return nil, err
+	}
+
+	node := Node{
+		Line:   start.Line,
+		Column: start.Column,
+
+		Type: NodeForLoop,
+		ExtraInfo: &NodeInfoForLoop{
+			Count:    count,
+			Body:     body,
+			IndexVar: indexVar,
+		},
+	}
+
+	return &node, nil
+}
+
 func (p *Parser) parseWhenArm(s *TokenStream) (*Node, *ParserError) {
 	// The start of an arm in KrabbaScript is a comparison.
 	// Example:
@@ -2325,6 +2390,14 @@ loop:
 			}
 		case lexer.TokenElse:
 			n, err := p.parseElseToks(s)
+			if err != nil {
+				p.errors = append(p.errors, *err)
+				p.sync(s)
+			} else {
+				p.appendToBlock(ast, n)
+			}
+		case lexer.TokenFor:
+			n, err := p.parseForToks(s)
 			if err != nil {
 				p.errors = append(p.errors, *err)
 				p.sync(s)

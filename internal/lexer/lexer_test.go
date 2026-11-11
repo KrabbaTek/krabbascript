@@ -59,17 +59,23 @@ func TestKeywords(t *testing.T) {
 	}{
 		{"var", "var", TokenVar},
 		{"val", "val", TokenVal},
+
 		{"func", "func", TokenFunc},
 		{"mod", "mod", TokenMod},
 		{"return", "return", TokenReturn},
+
 		{"if", "if", TokenIf},
 		{"elsif", "elsif", TokenElsif},
 		{"else", "else", TokenElse},
+
 		{"while", "while", TokenWhile},
 		{"for", "for", TokenFor},
 		{"loop", "loop", TokenLoop},
 		{"repeat", "repeat", TokenRepeat},
 		{"until", "until", TokenUntil},
+		{"times", "times", TokenTimes},
+		{"in", "in", TokenIn},
+		
 		{"when", "when", TokenWhen},
 		{"struct", "struct", TokenStruct},
 		{"import", "import", TokenImport},
