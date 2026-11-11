@@ -7,6 +7,15 @@
 # - set up the KrabbaScript modules directory (~/.kscript/libs) if it doesn't already exist
 # - prompt you to install Cranium (the KrabbaScript package manager — more information can be found here: https://github.com/KrabbaTek/Cranium-cli)
 
+# To get and run this script in a pretentious one-liner, run:
+# /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Centurion774477/krabbascript/refs/heads/dev/install.bash)"
+
+# You could also do this if you don't mind the verbosity:
+# curl -fsSL https://raw.githubusercontent.com/Centurion774477/krabbascript/refs/heads/dev/install.bash | install.bash
+# bash install.bash
+
+# This will save the script as install.bash, and then run that script via Bash.
+
 # Written by Reece Turner
 
 
@@ -38,7 +47,7 @@ then
     # todo: fix this to check for other shells
     if ! grep -qs 'go/bin' ~/.zshrc; then
         echo "KrabbaScript was installed, but it has not yet been added to your PATH."
-        read -p "Would you like to add ~/go/bin to your PATH? [Y/n] ~> " path_answer
+        read -p "Would you like to add ~/go/bin to your PATH? [Y/n] ~> " path_answer < /dev/tty
 
 
         # downcase the input
@@ -68,7 +77,7 @@ if [ ! -d ~/".kscript/libs" ]
 then
     echo $'\n\nWould you like to create the libs directory in ~/.kscript/libs?'
     echo "This will store any libraries installed from Cranium or anywhere else."
-    read -p "You should skip this if you don't plan on using any external libraries, otherwise I recommend creating it. [Y/n] ~> " input
+    read -p "You should skip this if you don't plan on using any external libraries, otherwise I recommend creating it. [Y/n] ~> " input < /dev/tty
 
     input=$(echo "$input" | tr '[:upper:]' '[:lower:]')
     if [[ "$input" == "y" || -z "$input" ]]
