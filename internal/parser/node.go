@@ -19,6 +19,8 @@ const (
 	NodeImportStatement // import statement
 	NodeWhenStatement   // when statement
 
+	NodeForLoop      // for loop
+
 	NodeModuleImport // module import
 	NodeModule       // module
 
@@ -110,6 +112,12 @@ type NodeInfoFunctionCall struct {
 	Callee *Node
 }
 
+type NodeInfoForLoop struct {
+	Count    *Node // the 1704 in `for 1704 times ...`
+	Body     *Node
+	IndexVar string
+}
+
 func (n *Node) PrintWithDepth(depth int) {
 	if n == nil {
 		return
@@ -176,6 +184,15 @@ func (n *Node) PrintWithDepth(depth int) {
 			}
 			fmt.Printf("%s   callee:\n", offset)
 			info.Callee.PrintWithDepth(depth + 2)
+		case *NodeInfoForLoop:
+			fmt.Println(" -> for loop:")
+			fmt.Printf("%s   times:\n", offset)
+			info.Count.PrintWithDepth(depth + 2)
+
+			fmt.Printf("%s   index var: %s\n", offset, info.IndexVar)
+
+			fmt.Printf("%s   body:\n", offset)
+			info.Body.PrintWithDepth(depth + 2)
 		default:
 			fmt.Printf(" -> einfo: %v\n", info)
 		}
