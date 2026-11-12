@@ -2480,6 +2480,14 @@ loop:
 			} else {
 				p.appendToBlock(ast, n)
 			}
+		case lexer.TokenForeach:
+			n, err := p.parseForeachToks(s)
+			if err != nil {
+				p.errors = append(p.errors, *err)
+				p.sync(s)
+			} else {
+				p.appendToBlock(ast, n)
+			}
 		case lexer.TokenStruct:
 			n, err := p.parseStructToks(s)
 			if err != nil {

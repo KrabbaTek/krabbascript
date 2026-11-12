@@ -22,6 +22,7 @@ const (
 	// loops
 	TokenWhile
 	TokenFor
+	TokenForeach
 	TokenLoop
 	TokenRepeat
 	TokenUntil
@@ -141,6 +142,7 @@ func (tt TokenType) String() string {
 
 		TokenWhile:  "while",
 		TokenFor:    "for",
+		TokenForeach: "foreach",
 		TokenLoop:   "loop",
 		TokenRepeat: "repeat",
 		TokenUntil:  "until",
