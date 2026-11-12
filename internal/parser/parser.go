@@ -1436,16 +1436,13 @@ func (p *Parser) parseForToks(s *TokenStream) (*Node, *ParserError) {
 	return &node, nil
 }
 
-// foreach loops, like for loops, can take two forms:
+// for loops, like for loops, can take two forms:
 // without an index:
 // for item in items { ... }
 // or, with an index:
 // for item in items (index) { ... }
 func (p *Parser) parseForeachToks(s *TokenStream) (*Node, *ParserError) {
 	start := p.consumeToks(s)
-
-	// also like in for loops, you can either pass a normal array or an expression returning an array.
-	// this is why the NodeInfoForeachLoop struct's Array field is a Node.
 
 	// expect an iterator
 	err := p.expectToks(s, lexer.TokenLiteral)
@@ -1463,12 +1460,14 @@ func (p *Parser) parseForeachToks(s *TokenStream) (*Node, *ParserError) {
 		return nil, err
 	}
 
-	// consume the array expression
-	array, err := p.parseExpressionWithMinBpToks(s, 0, false, false)
+	// consume the array string
+	err = p.expectToks(s, lexer.TokenLiteral)
 
 	if err != nil {
-		return nil, err
+    	return nil, err
 	}
+
+	array := p.consumeToks(s).Value
 
 	// now we need to check for the index variable
 	var indexVar string
@@ -2473,20 +2472,24 @@ loop:
 				p.appendToBlock(ast, n)
 			}
 		case lexer.TokenFor:
-			n, err := p.parseForToks(s)
-			if err != nil {
-				p.errors = append(p.errors, *err)
-				p.sync(s)
+			// since both for and foreach loops
+			// start with 'for', we need to peek ahead to determine which one is being used.
+			if s.pos+2 < len(s.toks) && s.toks[s.pos+2].Type == lexer.TokenIn {
+				n, err := p.parseForeachToks(s)
+				if err != nil {
+					p.errors = append(p.errors, *err)
+					p.sync(s)
+				} else {
+					p.appendToBlock(ast, n)
+				}
 			} else {
-				p.appendToBlock(ast, n)
-			}
-		case lexer.TokenForeach:
-			n, err := p.parseForeachToks(s)
-			if err != nil {
-				p.errors = append(p.errors, *err)
-				p.sync(s)
-			} else {
-				p.appendToBlock(ast, n)
+				n, err := p.parseForToks(s)
+				if err != nil {
+					p.errors = append(p.errors, *err)
+					p.sync(s)
+				} else {
+					p.appendToBlock(ast, n)
+				}
 			}
 		case lexer.TokenStruct:
 			n, err := p.parseStructToks(s)

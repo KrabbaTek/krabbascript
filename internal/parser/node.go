@@ -121,7 +121,7 @@ type NodeInfoForLoop struct {
 
 type NodeInfoForeachLoop struct {
 	Iterator string // 'element' in: 'for element in array'
-	Array    *Node
+	Array    string
 	IndexVar string
 	Body     *Node
 }
@@ -209,8 +209,7 @@ func (n *Node) PrintWithDepth(depth int) {
 
 			fmt.Printf("%s   index var: %s\n", offset, info.IndexVar)
 
-			fmt.Printf("%s   array:\n", offset)
-			info.Array.PrintWithDepth(depth + 2)
+			fmt.Printf("%s   array: %s\n", offset, info.Array)
 
 			fmt.Printf("%s   body:\n", offset)
 			info.Body.PrintWithDepth(depth + 2)
