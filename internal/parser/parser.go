@@ -988,7 +988,7 @@ func (p *Parser) parseScopeToks(s *TokenStream) (*Node, *ParserError) {
 	})
 
 	// The errors will get pushed to errors field
-	n, _ := p.ParseToks(&TokenStream{toks: toks, pos: 0})
+	n, _ := p.ParseToks(&TokenStream{toks: toks, pos: 0}, false)
 	n.Type = NodeScope
 
 	return n, nil
@@ -1050,6 +1050,96 @@ func (p *Parser) parseStructFieldsToks(s *TokenStream) (*Node, *ParserError) {
 
 		p.appendToBlock(node, n)
 	}
+}
+
+// Parses attributes like `--[deprecated]`
+// Returns the actual attribute name and an error if it exists.
+func (p *Parser) parseAttributeToks(s *TokenStream) (string, *ParserError) {
+	p.consumeToks(s)
+
+	err := p.expectToks(s, lexer.TokenOpenSqBrack)
+	if err != nil {
+		return "", err
+	}
+
+	p.consumeToks(s)
+
+	// Save the attribute name.
+	// First check if it's a literal.
+	err = p.expectToks(s, lexer.TokenLiteral)
+	if err != nil {
+		return "", err
+	}
+
+	attribute := p.consumeToks(s)
+
+	err = p.expectToks(s, lexer.TokenClosedSqBrack)
+	if err != nil {
+		return "", err
+	}
+
+	p.consumeToks(s)
+
+	// Attributes always have a newline after them.
+	// Example:
+	// --[deprecated]
+	// func cake_spawner() { ... }
+	err = p.expectToks(s, lexer.TokenEol)
+	if err != nil {
+		return "", err
+	}
+
+	p.consumeToks(s)
+	return attribute.Value, nil
+}
+
+// Parses global attributes like `--![no_mangle]`
+// Returns the actual attribute name and an error if it exists.
+func (p *Parser) parseGlobalAttributeToks(s *TokenStream) (string, *ParserError) {
+	p.consumeToks(s)
+
+	// Since it's a global attribute we have to check if the -- is followed by a !
+	err := p.expectToks(s, lexer.TokenNot)
+	if err != nil {
+		return "", err
+	}
+
+	p.consumeToks(s)
+
+	err = p.expectToks(s, lexer.TokenOpenSqBrack)
+	if err != nil {
+		return "", err
+	}
+
+	p.consumeToks(s)
+
+	// Save the attribute name.
+	// First check if it's a literal.
+	err = p.expectToks(s, lexer.TokenLiteral)
+	if err != nil {
+		return "", err
+	}
+
+	attribute := p.consumeToks(s)
+
+	err = p.expectToks(s, lexer.TokenClosedSqBrack)
+	if err != nil {
+		return "", err
+	}
+
+	p.consumeToks(s)
+
+	// Attributes always have a newline after them.
+	// Example:
+	// --[deprecated]
+	// func cake_spawner() { ... }
+	err = p.expectToks(s, lexer.TokenEol)
+	if err != nil {
+		return "", err
+	}
+
+	p.consumeToks(s)
+	return attribute.Value, nil
 }
 
 func (p *Parser) parseStructScopeToks(s *TokenStream) (*Node, *ParserError) {
@@ -1494,7 +1584,7 @@ func (p *Parser) parseWhenDo(s *TokenStream, armStart lexer.Token) (*Node, *Pars
 	}
 	toks = append(toks, lexer.Token{Line: eofLine, Column: eofCol, Type: lexer.TokenEof})
 
-	body, _ := p.ParseToks(&TokenStream{toks: toks, pos: 0})
+	body, _ := p.ParseToks(&TokenStream{toks: toks, pos: 0}, false)
 	body.Type = NodeScope
 	return body, nil
 }
@@ -2277,11 +2367,36 @@ func (p *Parser) sync(s *TokenStream) {
 	}
 }
 
-func (p *Parser) ParseToks(s *TokenStream) (*Node, []ParserError) {
+func (p *Parser) ParseToks(s *TokenStream, allowedGlobalAttributes bool) (*Node, []ParserError) {
 	ast := &Node{
 		Type:      NodeRoot,
 		ExtraInfo: &NodeInfoBlock{},
 	}
+
+	if allowedGlobalAttributes {
+		// Global attributes are enabled, if current is `--` followed by a
+		// `!`, then it's a global attribute, parse it. If not, break
+		for {
+			current := p.currentToks(s)
+			next := p.peekToks(s)
+
+			// --!
+			if current.Type == lexer.TokenMinusMinus && next.Type == lexer.TokenNot {
+				attribute, err := p.parseGlobalAttributeToks(s)
+				if err != nil {
+					p.errors = append(p.errors, *err)
+					p.sync(s)
+
+					break
+				}
+
+				ast.Attributes = append(ast.Attributes, attribute)
+			} else {
+				break
+			}
+		}
+	}
+	localAttribute := ""
 
 loop:
 	for {
@@ -2297,14 +2412,27 @@ loop:
 				p.errors = append(p.errors, *err)
 				p.sync(s)
 			} else {
+				// Since you can attach an attribute like `unused` on a var,
+				// check if the localAttribute is not empty, if it's not, add it to the node.
+				if localAttribute != "" {
+					n.Attributes = append(n.Attributes, localAttribute)
+					localAttribute = ""
+				}
 				p.appendToBlock(ast, n)
 			}
 		case lexer.TokenVal:
+
 			n, err := p.parseValToks(s)
 			if err != nil {
 				p.errors = append(p.errors, *err)
 				p.sync(s)
 			} else {
+				// Since you can attach an attribute like `unused` on a val,
+				// check if the localAttribute is not empty, if it's not, add it to the node.
+				if localAttribute != "" {
+					n.Attributes = append(n.Attributes, localAttribute)
+					localAttribute = ""
+				}
 				p.appendToBlock(ast, n)
 			}
 		case lexer.TokenIf:
@@ -2337,6 +2465,12 @@ loop:
 				p.errors = append(p.errors, *err)
 				p.sync(s)
 			} else {
+				// Since you can attach an attribute like `packed` on a struct,
+				// check if the localAttribute is not empty, if it's not, add it to the node.
+				if localAttribute != "" {
+					n.Attributes = append(n.Attributes, localAttribute)
+					localAttribute = ""
+				}
 				p.appendToBlock(ast, n)
 			}
 		case lexer.TokenSic:
@@ -2369,6 +2503,12 @@ loop:
 				p.errors = append(p.errors, *err)
 				p.sync(s)
 			} else {
+				// Since you can attach an attribute like `deprecated` on a function,
+				// check if the localAttribute is not empty, if it's not, add it to the node.
+				if localAttribute != "" {
+					n.Attributes = append(n.Attributes, localAttribute)
+					localAttribute = ""
+				}
 				p.appendToBlock(ast, n)
 			}
 		case lexer.TokenReturn:
@@ -2387,6 +2527,14 @@ loop:
 			} else {
 				p.appendToBlock(ast, n)
 			}
+		case lexer.TokenMinusMinus:
+			attribute, err := p.parseAttributeToks(s)
+			if err != nil {
+				p.errors = append(p.errors, *err)
+				p.sync(s)
+			}
+
+			localAttribute = attribute
 		case lexer.TokenMod:
 			n, err := p.parseModuleToks(s)
 			if err != nil {
@@ -2435,5 +2583,5 @@ loop:
 }
 
 func (p *Parser) Parse() (*Node, []ParserError) {
-	return p.ParseToks(&p.toks)
+	return p.ParseToks(&p.toks, true)
 }

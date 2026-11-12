@@ -442,9 +442,6 @@ func (r *Resolver) Walk(ast *parser.Node) ([]map[string]*SymTableEntry, []*Resol
 	r.symTable = append(r.symTable, make(map[string]*SymTableEntry))
 	r.walkBlock(ast)
 
-	fmt.Println("AST:")
-	ast.Print()
-
 	return r.symTable, r.errors
 }
 
