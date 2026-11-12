@@ -21,6 +21,7 @@ const (
 
 	NodeForLoop      // for loop
 	NodeForeachLoop  // foreach loop
+	NodeWhileLoop    // while loop
 
 	NodeModuleImport // module import
 	NodeModule       // module
@@ -126,6 +127,11 @@ type NodeInfoForeachLoop struct {
 	Body     *Node
 }
 
+type NodeInfoWhileLoop struct {
+	Condition *Node
+	Body *Node
+}
+
 func (n *Node) PrintWithDepth(depth int) {
 	if n == nil {
 		return
@@ -210,6 +216,14 @@ func (n *Node) PrintWithDepth(depth int) {
 			fmt.Printf("%s   index var: %s\n", offset, info.IndexVar)
 
 			fmt.Printf("%s   array: %s\n", offset, info.Array)
+
+			fmt.Printf("%s   body:\n", offset)
+			info.Body.PrintWithDepth(depth + 2)
+		case *NodeInfoWhileLoop:
+			fmt.Println(" -> while loop:")
+
+			fmt.Printf("%s   condition:\n", offset)
+			info.Condition.PrintWithDepth(depth + 2)
 
 			fmt.Printf("%s   body:\n", offset)
 			info.Body.PrintWithDepth(depth + 2)

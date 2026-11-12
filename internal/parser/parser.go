@@ -1511,6 +1511,47 @@ func (p *Parser) parseForeachToks(s *TokenStream) (*Node, *ParserError) {
 	return &node, nil
 }
 
+// while loops are quite simple — they look like:
+// while <condition> {
+//   # block
+// }
+// for example:
+// while icelandIsAmazing {
+//   Std.print("I love Iceland!");
+// }
+func (p *Parser) parseWhileToks(s *TokenStream) (*Node, *ParserError) {
+	start := p.consumeToks(s)
+
+	// the condition can be — and has a high probability of being — an expression, like:
+	// while country == "denmark" ...
+	condition, err := p.parseExpressionWithMinBpToks(s, 0, false, false)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// now consume the loop body
+
+	body, err := p.parseScopeToks(s)
+
+	if err != nil {
+		return nil, err
+	}
+
+	node := Node{
+		Line:   start.Line,
+		Column: start.Column,
+
+		Type: NodeWhileLoop,
+		ExtraInfo: &NodeInfoWhileLoop{
+			Condition: condition,
+			Body: body,
+		},
+	}
+
+	return &node, nil
+}
+
 func (p *Parser) parseWhenArm(s *TokenStream) (*Node, *ParserError) {
 	// The start of an arm in KrabbaScript is a comparison.
 	// Example:
@@ -2490,6 +2531,14 @@ loop:
 				} else {
 					p.appendToBlock(ast, n)
 				}
+			}
+		case lexer.TokenWhile:
+			n, err := p.parseWhileToks(s)
+			if err != nil {
+				p.errors = append(p.errors, *err)
+				p.sync(s)
+			} else {
+				p.appendToBlock(ast, n)
 			}
 		case lexer.TokenStruct:
 			n, err := p.parseStructToks(s)
