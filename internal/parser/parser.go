@@ -1436,6 +1436,81 @@ func (p *Parser) parseForToks(s *TokenStream) (*Node, *ParserError) {
 	return &node, nil
 }
 
+// for loops, like for loops, can take two forms:
+// without an index:
+// for item in items { ... }
+// or, with an index:
+// for item in items (index) { ... }
+func (p *Parser) parseForeachToks(s *TokenStream) (*Node, *ParserError) {
+	start := p.consumeToks(s)
+
+	// expect an iterator
+	err := p.expectToks(s, lexer.TokenLiteral)
+
+	if err != nil {
+		return nil, err
+	}
+
+	iterator := p.consumeToks(s).Value
+
+	// consume the 'in' token
+	err = p.skipToks(s, lexer.TokenIn)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// consume the array string
+	err = p.expectToks(s, lexer.TokenLiteral)
+
+	if err != nil {
+    	return nil, err
+	}
+
+	array := p.consumeToks(s).Value
+
+	// now we need to check for the index variable
+	var indexVar string
+
+	if p.currentToks(s).Type == lexer.TokenOpenParen {
+		p.consumeToks(s)
+
+		err = p.expectToks(s, lexer.TokenLiteral)
+		if err != nil {
+			return nil, err
+		}
+
+		indexVar = p.consumeToks(s).Value
+
+		err = p.skipToks(s, lexer.TokenClosedParen)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// consume the loop body
+	body, err := p.parseScopeToks(s)
+
+	if err != nil {
+		return nil, err
+	}
+
+	node := Node{
+		Line:   start.Line,
+		Column: start.Column,
+
+		Type: NodeForeachLoop,
+		ExtraInfo: &NodeInfoForeachLoop{
+			Iterator: iterator,
+			Array: array,
+			IndexVar: indexVar,
+			Body: body,
+		},
+	}
+
+	return &node, nil
+}
+
 func (p *Parser) parseWhenArm(s *TokenStream) (*Node, *ParserError) {
 	// The start of an arm in KrabbaScript is a comparison.
 	// Example:
@@ -2397,12 +2472,24 @@ loop:
 				p.appendToBlock(ast, n)
 			}
 		case lexer.TokenFor:
-			n, err := p.parseForToks(s)
-			if err != nil {
-				p.errors = append(p.errors, *err)
-				p.sync(s)
+			// since both for and foreach loops
+			// start with 'for', we need to peek ahead to determine which one is being used.
+			if s.pos+2 < len(s.toks) && s.toks[s.pos+2].Type == lexer.TokenIn {
+				n, err := p.parseForeachToks(s)
+				if err != nil {
+					p.errors = append(p.errors, *err)
+					p.sync(s)
+				} else {
+					p.appendToBlock(ast, n)
+				}
 			} else {
-				p.appendToBlock(ast, n)
+				n, err := p.parseForToks(s)
+				if err != nil {
+					p.errors = append(p.errors, *err)
+					p.sync(s)
+				} else {
+					p.appendToBlock(ast, n)
+				}
 			}
 		case lexer.TokenStruct:
 			n, err := p.parseStructToks(s)

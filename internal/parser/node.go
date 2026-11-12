@@ -20,6 +20,7 @@ const (
 	NodeWhenStatement   // when statement
 
 	NodeForLoop      // for loop
+	NodeForeachLoop  // foreach loop
 
 	NodeModuleImport // module import
 	NodeModule       // module
@@ -118,6 +119,13 @@ type NodeInfoForLoop struct {
 	IndexVar string
 }
 
+type NodeInfoForeachLoop struct {
+	Iterator string // 'element' in: 'for element in array'
+	Array    string
+	IndexVar string
+	Body     *Node
+}
+
 func (n *Node) PrintWithDepth(depth int) {
 	if n == nil {
 		return
@@ -186,10 +194,22 @@ func (n *Node) PrintWithDepth(depth int) {
 			info.Callee.PrintWithDepth(depth + 2)
 		case *NodeInfoForLoop:
 			fmt.Println(" -> for loop:")
+
 			fmt.Printf("%s   times:\n", offset)
 			info.Count.PrintWithDepth(depth + 2)
 
 			fmt.Printf("%s   index var: %s\n", offset, info.IndexVar)
+
+			fmt.Printf("%s   body:\n", offset)
+			info.Body.PrintWithDepth(depth + 2)
+		case *NodeInfoForeachLoop:
+			fmt.Println(" -> foreach loop:")
+
+			fmt.Printf("%s   iterator: %s\n", offset, info.Iterator)
+
+			fmt.Printf("%s   index var: %s\n", offset, info.IndexVar)
+
+			fmt.Printf("%s   array: %s\n", offset, info.Array)
 
 			fmt.Printf("%s   body:\n", offset)
 			info.Body.PrintWithDepth(depth + 2)
