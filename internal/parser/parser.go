@@ -1436,6 +1436,82 @@ func (p *Parser) parseForToks(s *TokenStream) (*Node, *ParserError) {
 	return &node, nil
 }
 
+// foreach loops, like for loops, can take two forms:
+// without an index:
+// for item in items { ... }
+// or, with an index:
+// for item in items (index) { ... }
+func (p *Parser) parseForeachToks(s *TokenStream) (*Node, *ParserError) {
+	start := p.consumeToks(s)
+
+	// also like in for loops, you can either pass a normal array or an expression returning an array.
+	// this is why the NodeInfoForeachLoop struct's Array field is a Node.
+
+	// expect an iterator
+	err := p.expectToks(s, lexer.TokenLiteral)
+
+	if err != nil {
+		return nil, err
+	}
+
+	iterator := p.consumeToks(s).Value
+
+	// consume the 'in' token
+	err = p.skipToks(s, lexer.TokenIn)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// consume the array expression
+	array, err := p.parseExpressionWithMinBpToks(s, 0, false, false)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// now we need to check for the index variable
+	var indexVar string
+
+	if p.currentToks(s).Type == lexer.TokenOpenParen {
+		p.consumeToks(s)
+
+		err = p.expectToks(s, lexer.TokenLiteral)
+		if err != nil {
+			return nil, err
+		}
+
+		indexVar = p.consumeToks(s).Value
+
+		err = p.skipToks(s, lexer.TokenClosedParen)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// consume the loop body
+	body, err := p.parseScopeToks(s)
+
+	if err != nil {
+		return nil, err
+	}
+
+	node := Node{
+		Line:   start.Line,
+		Column: start.Column,
+
+		Type: NodeForeachLoop,
+		ExtraInfo: &NodeInfoForeachLoop{
+			Iterator: iterator,
+			Array: array,
+			IndexVar: indexVar,
+			Body: body,
+		},
+	}
+
+	return &node, nil
+}
+
 func (p *Parser) parseWhenArm(s *TokenStream) (*Node, *ParserError) {
 	// The start of an arm in KrabbaScript is a comparison.
 	// Example:
