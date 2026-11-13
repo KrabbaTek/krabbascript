@@ -22,6 +22,7 @@ const (
 	NodeForLoop      // for loop
 	NodeForeachLoop  // foreach loop
 	NodeWhileLoop    // while loop
+	NodeUntilLoop    // repeat..until loop
 
 	NodeModuleImport // module import
 	NodeModule       // module
@@ -127,7 +128,18 @@ type NodeInfoForeachLoop struct {
 	Body     *Node
 }
 
+// If I recall correctly,
+// the reason why there are separate structs
+// for while and until loops
+// is for debugging —
+// but we could just store the type in a column, 
+// which would solve the problem entirely
 type NodeInfoWhileLoop struct {
+	Condition *Node
+	Body *Node
+}
+
+type NodeInfoUntilLoop struct {
 	Condition *Node
 	Body *Node
 }
@@ -221,6 +233,14 @@ func (n *Node) PrintWithDepth(depth int) {
 			info.Body.PrintWithDepth(depth + 2)
 		case *NodeInfoWhileLoop:
 			fmt.Println(" -> while loop:")
+
+			fmt.Printf("%s   condition:\n", offset)
+			info.Condition.PrintWithDepth(depth + 2)
+
+			fmt.Printf("%s   body:\n", offset)
+			info.Body.PrintWithDepth(depth + 2)
+		case *NodeInfoUntilLoop:
+			fmt.Println(" -> repeat..until loop:")
 
 			fmt.Printf("%s   condition:\n", offset)
 			info.Condition.PrintWithDepth(depth + 2)
