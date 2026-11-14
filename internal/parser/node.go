@@ -90,7 +90,8 @@ type Node struct {
 	Lexeme       string
 	Line, Column int
 
-	ExtraInfo any
+	Attributes []string
+	ExtraInfo  any
 }
 
 type NodeInfoBlock struct {
@@ -262,6 +263,12 @@ func (n *Node) PrintWithDepth(depth int) {
 	if n.Right != nil {
 		fmt.Printf("%s   right:\n", offset)
 		n.Right.PrintWithDepth(depth + 2)
+	}
+
+	// Print out the attributes
+	fmt.Printf("%s   attributes:\n", offset)
+	for i, attribute := range n.Attributes {
+		fmt.Printf("%s      [%d]: %s\n", offset, i, attribute)
 	}
 }
 

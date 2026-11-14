@@ -99,6 +99,14 @@ var buildCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
+		// If the passed flag was --dump-toks, well, dump the lexer's tokens
+		dumpToks, _ := cmd.Flags().GetBool("dump-toks")
+		if dumpToks {
+			for _, token := range toks {
+				fmt.Printf("%s\n", token)
+			}
+		}
+
 		p := parser.NewParser(toks, dir)
 		ast, perrors := p.Parse()
 
@@ -121,6 +129,11 @@ var buildCmd = &cobra.Command{
 			color.Unset()
 
 			os.Exit(1)
+		}
+
+		dumpAst, _ := cmd.Flags().GetBool("dump-ast")
+		if dumpAst {
+			ast.Print()
 		}
 
 		ires, err := importresolver.NewImportResolver(make([]string, 0))
@@ -151,10 +164,13 @@ var buildCmd = &cobra.Command{
 		res := resolver.NewResolver(dir)
 		symTable, rerrors := res.Walk(ast)
 
-		fmt.Println("symbol table:")
-		for _, htable := range symTable {
-			for v, k := range htable {
-				k.Print(v)
+		dumpSymTable, _ := cmd.Flags().GetBool("dump-symtable")
+		if dumpSymTable {
+			fmt.Println("symbol table:")
+			for _, htable := range symTable {
+				for v, k := range htable {
+					k.Print(v)
+				}
 			}
 		}
 
@@ -205,5 +221,8 @@ var buildCmd = &cobra.Command{
 
 func init() {
 	buildCmd.Flags().Bool("format", false, "Insert semicolons before building.")
+	buildCmd.Flags().Bool("dump-toks", false, "Dump the tokenized file")
+	buildCmd.Flags().Bool("dump-ast", false, "Dump the AST")
+	buildCmd.Flags().Bool("dump-symtable", false, "Dump the Symbol Table")
 	rootCmd.AddCommand(buildCmd)
 }
