@@ -1511,6 +1511,103 @@ func (p *Parser) parseForeachToks(s *TokenStream) (*Node, *ParserError) {
 	return &node, nil
 }
 
+// while loops are quite simple — they look like:
+// while <condition> {
+//   # block
+// }
+
+// for example:
+// while icelandIsAmazing {
+//   Std.print("I love Iceland!");
+// }
+func (p *Parser) parseWhileToks(s *TokenStream) (*Node, *ParserError) {
+	start := p.consumeToks(s)
+
+	// the condition can be — and has a high probability of being — an expression, like:
+	// while country == "denmark" ...
+	condition, err := p.parseExpressionWithMinBpToks(s, 0, false, false)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// now consume the loop body
+
+	body, err := p.parseScopeToks(s)
+
+	if err != nil {
+		return nil, err
+	}
+
+	node := Node{
+		Line:   start.Line,
+		Column: start.Column,
+
+		Type: NodeWhileLoop,
+		ExtraInfo: &NodeInfoWhileLoop{
+			Condition: condition,
+			Body: body,
+		},
+	}
+
+	return &node, nil
+}
+
+// this is for repeat..until loops — the inverse of while loops.
+// they look like:
+// repeat {
+//   # block
+// } until <condition>
+
+// here's an example repeat..until loop:
+// repeat {
+//   rantAboutWhyRailsIsGreat!;
+// } until railsIsTrending;
+func (p *Parser) parseUntilToks(s *TokenStream) (*Node, *ParserError) {
+	// consume the repeat token
+	start := p.consumeToks(s)
+
+	// consume the body
+	body, err := p.parseScopeToks(s)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// skip the until token
+	err = p.skipToks(s, lexer.TokenUntil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// parse the condition as an expression
+	condition, err := p.parseExpressionWithMinBpToks(s, 0, false, false)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// consume the semicolon after the condition
+	err = p.skipToks(s, lexer.TokenSemi)
+	if err != nil {
+		return nil, err
+	}
+
+	node := Node{
+		Line:   start.Line,
+		Column: start.Column,
+
+		Type: NodeUntilLoop,
+		ExtraInfo: &NodeInfoUntilLoop{
+			Condition: condition,
+			Body: body,
+		},
+	}
+
+	return &node, nil
+}
+
 func (p *Parser) parseWhenArm(s *TokenStream) (*Node, *ParserError) {
 	// The start of an arm in KrabbaScript is a comparison.
 	// Example:
@@ -2490,6 +2587,22 @@ loop:
 				} else {
 					p.appendToBlock(ast, n)
 				}
+			}
+		case lexer.TokenWhile:
+			n, err := p.parseWhileToks(s)
+			if err != nil {
+				p.errors = append(p.errors, *err)
+				p.sync(s)
+			} else {
+				p.appendToBlock(ast, n)
+			}
+		case lexer.TokenRepeat:
+			n, err := p.parseUntilToks(s)
+			if err != nil {
+				p.errors = append(p.errors, *err)
+				p.sync(s)
+			} else {
+				p.appendToBlock(ast, n)
 			}
 		case lexer.TokenStruct:
 			n, err := p.parseStructToks(s)
