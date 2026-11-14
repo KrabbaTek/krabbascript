@@ -1059,7 +1059,10 @@ func (p *Parser) parseAttributeToks(s *TokenStream) (string, *ParserError) {
 
 	err := p.expectToks(s, lexer.TokenOpenSqBrack)
 	if err != nil {
-		return "", err
+		return "", &ParserError{
+			What: err.What,
+			Fix:  "seems you're trying to define a global attribute. they can only be put on the top of the file.",
+		}
 	}
 
 	p.consumeToks(s)
@@ -1086,10 +1089,27 @@ func (p *Parser) parseAttributeToks(s *TokenStream) (string, *ParserError) {
 	// func cake_spawner() { ... }
 	err = p.expectToks(s, lexer.TokenEol)
 	if err != nil {
-		return "", err
+		current := p.currentToks(s)
+		return "", &ParserError{
+			What: fmt.Errorf("%s:%d:%d: expected a newline after attribute, got %s", p.file, current.Line, current.Column, current),
+		}
 	}
 
 	p.consumeToks(s)
+
+	// Local attributes after a newline have to be "attached"
+	// to something, for example a function or a struct. Check
+	// for that.
+	current := p.currentToks(s)
+	if current.Type == lexer.TokenEof || current.Type == lexer.TokenEol {
+		return "", &ParserError{
+			What: fmt.Errorf("%s:%d:%d: the attribute is not attached to anything\n", p.file, current.Line, current.Column),
+			Fix: `local attributes have to attached to, for example, a function or a struct. example:
+	--[deprecated]
+	func cook();`,
+		}
+	}
+
 	return attribute.Value, nil
 }
 
@@ -1135,7 +1155,10 @@ func (p *Parser) parseGlobalAttributeToks(s *TokenStream) (string, *ParserError)
 	// func cake_spawner() { ... }
 	err = p.expectToks(s, lexer.TokenEol)
 	if err != nil {
-		return "", err
+		current := p.currentToks(s)
+		return "", &ParserError{
+			What: fmt.Errorf("%s:%d:%d: expected a newline after attribute, got %s", p.file, current.Line, current.Column, current),
+		}
 	}
 
 	p.consumeToks(s)
