@@ -18,6 +18,7 @@ const (
 	TokenElse
 
 	TokenWhen
+	TokenFall
 
 	// loops
 	TokenWhile
@@ -135,9 +136,9 @@ func (tt TokenType) String() string {
 		TokenMod:    "mod",
 		TokenReturn: "return",
 
-		TokenIf:     "if",
-		TokenElsif:  "elsif",
-		TokenElse:   "else",
+		TokenIf:    "if",
+		TokenElsif: "elsif",
+		TokenElse:  "else",
 
 		TokenWhile:  "while",
 		TokenFor:    "for",
