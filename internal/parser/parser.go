@@ -1886,21 +1886,6 @@ func (p *Parser) parseWhenArms(s *TokenStream) ([]*Node, *ParserError) {
 
 		t := p.currentToks(s)
 		if t.Type == lexer.TokenEof {
-
-			if len(arms) == 0 {
-				return arms, nil
-			}
-
-			last := arms[len(arms)-1]
-
-			info, ok := last.ExtraInfo.(*NodeInfoWhenArm)
-
-			if ok && info.Fall {
-				return nil, &ParserError{
-					What: fmt.Errorf("%s:%d:%d: The last arm of a when statement cannot fall through", p.file, last.Line, last.Column),
-				}
-			}
-
 			return arms, nil
 		}
 
