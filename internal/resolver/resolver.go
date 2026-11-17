@@ -446,6 +446,10 @@ func (r *Resolver) Walk(ast *parser.Node) ([]map[string]*SymTableEntry, []*Resol
 }
 
 func (r *Resolver) walkBlock(block *parser.Node) {
+	if block == nil {
+		return
+	}
+
 	v, ok := block.ExtraInfo.(*parser.NodeInfoBlock)
 	if !ok {
 		r.errors = append(r.errors, &ResolverError{
