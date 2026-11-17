@@ -1739,7 +1739,7 @@ func (p *Parser) parseWhenArm(s *TokenStream) (*Node, *ParserError) {
 		Line:   start.Line,
 		Column: start.Column,
 		Type:   NodeWhenArm,
-		ExtraInfo: NodeInfoWhenArm{ Fall: false },
+		ExtraInfo: &NodeInfoWhenArm{},
 	}
 
 	bp, ok := p.bindings[start.Type]
@@ -1807,7 +1807,7 @@ func (p *Parser) parseWhenArm(s *TokenStream) (*Node, *ParserError) {
 	}
 	if p.currentToks(s).Type == lexer.TokenFall {
 		p.consumeToks(s)
-		arm.ExtraInfo = NodeInfoWhenArm{ Fall: true }
+		arm.ExtraInfo = &NodeInfoWhenArm{Fall: true}
 	}
 	arm.Right = body
 
@@ -1892,7 +1892,10 @@ func (p *Parser) parseWhenArms(s *TokenStream) ([]*Node, *ParserError) {
 			}
 
 			last := arms[len(arms)-1]
-			if last.ExtraInfo == (NodeInfoWhenArm{Fall: true}) {
+
+			info, ok := last.ExtraInfo.(*NodeInfoWhenArm)
+
+			if ok && info.Fall {
 				return nil, &ParserError{
 					What: fmt.Errorf("%s:%d:%d: The last arm of a when statement cannot fall through", p.file, last.Line, last.Column),
 				}
