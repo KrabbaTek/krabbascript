@@ -86,6 +86,7 @@ func newKeywords() map[string]TokenType {
 		"repeat": TokenRepeat,
 		"until":  TokenUntil,
 		"when":   TokenWhen,
+		"fall":   TokenFall,
 		"times":  TokenTimes,
 		"in":     TokenIn,
 

@@ -1739,6 +1739,7 @@ func (p *Parser) parseWhenArm(s *TokenStream) (*Node, *ParserError) {
 		Line:   start.Line,
 		Column: start.Column,
 		Type:   NodeWhenArm,
+		ExtraInfo: &NodeInfoWhenArm{},
 	}
 
 	bp, ok := p.bindings[start.Type]
@@ -1761,6 +1762,11 @@ func (p *Parser) parseWhenArm(s *TokenStream) (*Node, *ParserError) {
 		body, err := p.parseWhenDo(s, start)
 		if err != nil {
 			return nil, err
+		}
+		if p.currentToks(s).Type == lexer.TokenFall {
+			return nil, &ParserError{
+				What: fmt.Errorf("%s:%d:%d: cannot fallthrough in an else case", p.file, start.Line, start.Column),
+			}
 		}
 
 		return &Node{
@@ -1799,6 +1805,10 @@ func (p *Parser) parseWhenArm(s *TokenStream) (*Node, *ParserError) {
 	if perr != nil {
 		return nil, perr
 	}
+	if p.currentToks(s).Type == lexer.TokenFall {
+		p.consumeToks(s)
+		arm.ExtraInfo = &NodeInfoWhenArm{Fall: true}
+	}
 	arm.Right = body
 
 	return &arm, nil
@@ -1824,11 +1834,28 @@ func (p *Parser) parseWhenDo(s *TokenStream, armStart lexer.Token) (*Node, *Pars
 	}
 
 	var toks []lexer.Token
+	depth := 0
+
 	for {
+
+		// keep track of depth to avoid a nested `when`'s fall
+		// keyword terminating the top-level when's arm.
+
+		// TODO: there is definetly a better way to do this.
+
 		t := p.currentToks(s)
-		if t.Type == lexer.TokenEof || t.Type == lexer.TokenEol {
+		if t.Type == lexer.TokenEof || t.Type == lexer.TokenEol || (t.Type == lexer.TokenFall && depth == 0) {
 			break
 		}
+
+		if t.Type == lexer.TokenOpenBrack {
+			depth++
+		}
+		if t.Type == lexer.TokenClosedBrack && depth != 0 {
+			depth--
+		}
+
+
 		toks = append(toks, t)
 		p.consumeToks(s)
 	}

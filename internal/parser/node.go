@@ -145,6 +145,10 @@ type NodeInfoUntilLoop struct {
 	Body *Node
 }
 
+type NodeInfoWhenArm struct {
+	Fall bool
+}
+
 func (n *Node) PrintWithDepth(depth int) {
 	if n == nil {
 		return
